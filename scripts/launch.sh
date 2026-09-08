@@ -24,11 +24,14 @@ for arg in "$@"; do
   case "$arg" in
     --no-launch)   DO_LAUNCH=0 ;;
     --launch-only) DO_DEPLOY=0 ;;
+    --dev-buy=*)   DEV_BUY_NVDA="${arg#*=}" ;;
     -h|--help)
       echo "usage: ./scripts/launch.sh [--no-launch | --launch-only]"
       echo "  (no flags)     deploy contracts AND launch HATCH on PONS"
       echo "  --no-launch    deploy contracts only; no token is created"
-      echo "  --launch-only  launch the token using FEE_ROUTER from .env"
+      echo "  --launch-only  launch the token using FEE_ROUTER from .env
+  --dev-buy=N    also buy N NVDA of HATCH at launch, from the launcher wallet
+                 (the launcher is snipe-tax exempt automatically)"
       exit 0 ;;
     *) echo "unknown option: $arg" >&2; exit 1 ;;
   esac
@@ -171,6 +174,16 @@ EOF
 fi
 
 step "3/5  Launching HATCH on PONS"
+DEV_BUY_NVDA_WEI=0
+if [ -n "${DEV_BUY_NVDA:-}" ]; then
+  DEV_BUY_NVDA_WEI=$(cast to-wei "$DEV_BUY_NVDA" ether)
+  HELD=$(cast call 0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC 'balanceOf(address)(uint256)' "$DEPLOYER" --rpc-url "$RPC" | awk '{print $1}')
+  ok "opening buy requested: $DEV_BUY_NVDA NVDA"
+  ok "launcher holds:        $(cast from-wei "$HELD") NVDA"
+  python3 -c "import sys;sys.exit(0 if int('$HELD') >= int('$DEV_BUY_NVDA_WEI') else 1)" \
+    || die "launcher holds too little NVDA for a $DEV_BUY_NVDA NVDA opening buy"
+fi
+export DEV_BUY_NVDA_WEI
 FEE_ROUTER="$ROUTER" forge script script/LaunchHatch.s.sol:LaunchHatch \
   --rpc-url "$RPC" --broadcast 2>&1 | tee /tmp/hatch-launch.log | grep -E "HATCH token|bonding curve|launchFee|Error" || true
 grep -q "ONCHAIN EXECUTION COMPLETE" /tmp/hatch-launch.log || die "launch failed — see /tmp/hatch-launch.log"

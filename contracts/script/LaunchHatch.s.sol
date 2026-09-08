@@ -46,6 +46,21 @@ interface IPonsV2LaunchFactory {
     function approvedPairTokens(address token) external view returns (bool);
 }
 
+interface IPonsV2BondingCurve {
+    function getReserves() external view returns (uint256 quoteReserve, uint256 tokenReserve);
+    function feeBps() external view returns (uint256);
+    function creatorTaxBps() external view returns (uint256);
+    function buy(uint256 quoteIn, uint256 minTokensOut, address recipient)
+        external
+        payable
+        returns (uint256 tokensOut);
+}
+
+interface IERC20 {
+    function balanceOf(address) external view returns (uint256);
+    function approve(address, uint256) external returns (bool);
+}
+
 /// @notice Launches HATCH on PONS V2 with the deployed HatchFeeRouter as creator-fee recipient.
 ///
 /// Run AFTER DeployHatch, because this needs the router address.
@@ -121,16 +136,55 @@ contract LaunchHatch is Script {
         console2.log("launchFee (wei)    ", fee);
         console2.logBytes32(economics);
 
+        // Optional opening buy, in NVDA wei. The launcher is exempted from the
+        // snipe tax automatically by the factory, so this clears at the untaxed
+        // price without needing an exemption list.
+        uint256 devBuy = vm.envOr("DEV_BUY_NVDA_WEI", uint256(0));
+        uint256 slippageBps = vm.envOr("DEV_BUY_SLIPPAGE_BPS", uint256(300));
+        if (devBuy > 0) {
+            uint256 held = IERC20(NVDA).balanceOf(launcher);
+            require(held >= devBuy, "launcher does not hold enough NVDA for the opening buy");
+        }
+
         vm.startBroadcast(pk);
         (address token, address curve) = FACTORY.launchToken{value: fee}(params, configId, NVDA);
+
+        uint256 bought;
+        if (devBuy > 0) bought = _openingBuy(curve, devBuy, slippageBps, launcher);
         vm.stopBroadcast();
 
         console2.log("");
         console2.log("HATCH token        ", token);
         console2.log("bonding curve      ", curve);
+        if (devBuy > 0) {
+            console2.log("opening buy (NVDA) ", devBuy);
+            console2.log("HATCH received     ", bought);
+        }
         console2.log("");
         console2.log("Next: put the token address in web/config.js as hatchToken, redeploy the site,");
         console2.log("and record token + curve + tx hash in docs/DEPLOYMENTS.md.");
         console2.log("NOTE: governance is burned, so bindLaunch() is intentionally NOT called.");
+    }
+
+    /// @dev Opening buy from the launcher, which the factory exempts from the snipe
+    ///      tax automatically. Split out of run() to stay under the stack limit.
+    function _openingBuy(address curve, uint256 amountIn, uint256 slippageBps, address recipient)
+        internal
+        returns (uint256 bought)
+    {
+        IPonsV2BondingCurve c = IPonsV2BondingCurve(curve);
+        (uint256 qr, uint256 tr) = c.getReserves();
+
+        uint256 netIn = amountIn
+            - (amountIn * c.feeBps()) / 10_000
+            - (amountIn * c.creatorTaxBps()) / 10_000;
+
+        // Constant product, matching PonsV2BondingCurveMath.getAmountOut.
+        uint256 expected = (netIn * tr) / (qr + netIn);
+        uint256 minOut = (expected * (10_000 - slippageBps)) / 10_000;
+        require(minOut > 0, "computed minTokensOut is zero");
+
+        IERC20(NVDA).approve(curve, amountIn);
+        bought = c.buy(amountIn, minOut, recipient);
     }
 }
