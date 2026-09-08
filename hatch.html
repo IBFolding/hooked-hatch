@@ -23,7 +23,18 @@
         <p>Nobody knows what's inside. Every HATCH trade routes creator-fee NVDA into the Nest.</p>
         <div class="actions">
           <a id="trade-link" class="cta" href="#" target="_blank" rel="noopener">TRADE ON PONS ↗</a>
-          <button id="feed-button" class="ghost" type="button">FEED DIRECTLY</button>
+          <button id="connect-button" class="ghost" type="button">CONNECT WALLET</button>
+        </div>
+
+        <div class="feed-box">
+          <label for="feed-amount">FEED THE EGG DIRECTLY</label>
+          <div class="feed-row">
+            <input id="feed-amount" type="text" inputmode="decimal" placeholder="0.0" aria-label="NVDA amount to feed" />
+            <span class="unit">NVDA</span>
+            <button id="feed-button" class="ghost" type="button">FEED</button>
+          </div>
+          <p class="feed-note">Approves NVDA for the Nest, then calls <code>feed()</code>. Fed NVDA is permanent &mdash; there is no withdrawal function.</p>
+          <div id="tx-status" role="status" aria-live="polite" style="display:none"></div>
         </div>
       </div>
 
@@ -45,6 +56,14 @@
       <div class="progress-card">
         <div class="progress-top"><span id="stage-number">STAGE 0 / 7</span><span id="next-threshold">NEXT: 1 NVDA</span></div>
         <div class="progress"><div id="progress-fill"></div></div>
+        <div class="claim-row">
+          <div class="claim-info">
+            <span>PENDING PONS CREATOR FEES</span>
+            <strong id="pending-fees">—</strong>
+          </div>
+          <button id="claim-button" class="ghost" type="button" disabled>CLAIM &amp; FEED</button>
+        </div>
+        <p class="claim-note">Permissionless. Anyone may claim HATCH's creator fees from PONS escrow and trigger the 70/20/10 split. The caller earns nothing but gas costs.</p>
         <div class="milestones">
           <span>1<br><small>HAIRLINE</small></span><span>5<br><small>CRACK</small></span><span>10<br><small>MOVEMENT</small></span><span>25<br><small>EYE</small></span><span>50<br><small>BREACH</small></span><span>100<br><small>HATCH</small></span><span>250<br><small>???</small></span>
         </div>
@@ -75,12 +94,19 @@
       <div class="section-head"><span>VERIFY EVERYTHING</span><span>CONTRACT STATE</span></div>
       <div class="contract-grid">
         <div><span>HATCH TOKEN</span><code id="hatch-token">NOT LAUNCHED</code></div>
-        <div><span>NVDA</span><code>0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC</code></div>
+        <div><span>NVDA (QUOTE ASSET)</span><code id="nvda-address">0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC</code></div>
         <div><span>NEST</span><code id="nest-address">DEPLOY FIRST</code></div>
         <div><span>FEE ROUTER</span><code id="router-address">DEPLOY FIRST</code></div>
       </div>
     </section>
   </main>
+
+    <section class="disclaimer shell">
+      <div class="section-head"><span>RISK DISCLOSURE</span><span>READ THIS</span></div>
+      <p><strong>HATCH is an experiment, not an investment product.</strong> It is a meme coin with a mechanical fee-routing rule. It carries no claim on any company, no revenue share, and no promise of value. You can lose everything you put in.</p>
+      <p>The quote asset is a <strong>tokenized equity exposure product</strong> issued on Robinhood Chain. It is not a share of NVIDIA Corporation, confers no shareholder rights, no voting rights and no dividend entitlement. HOOKED is not affiliated with, endorsed by, or sponsored by NVIDIA Corporation or Robinhood Markets, Inc. Product names are used factually to identify the quote asset.</p>
+      <p>NVDA routed into the Nest is <strong>permanently locked</strong>. The contracts have no withdrawal, rescue or upgrade path for Nest principal. Nothing here is financial advice.</p>
+    </section>
 
   <footer class="shell"><span>HOOKED 001 // HATCH</span><span>THE EGG DOES NOT PROMISE RETURNS. IT JUST GETS FED.</span></footer>
   <script src="./config.js"></script>
