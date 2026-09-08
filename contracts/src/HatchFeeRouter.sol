@@ -29,7 +29,8 @@ contract HatchFeeRouter {
     address public immutable governance;
 
     address public hatchToken;
-    uint256 private _entered;
+    /// @dev 1 = not entered, 2 = entered. Initialised to 1 so the slot is never cold-written mid-call.
+    uint256 private _entered = 1;
 
     event LaunchBound(address indexed hatchToken);
     event FeesSplit(uint256 total, uint256 nestAmount, uint256 hookedAmount, uint256 teamAmount);
@@ -41,10 +42,10 @@ contract HatchFeeRouter {
     }
 
     modifier nonReentrant() {
-        if (_entered == 1) revert ReentrantCall();
-        _entered = 1;
+        if (_entered != 1) revert ReentrantCall();
+        _entered = 2;
         _;
-        _entered = 0;
+        _entered = 1;
     }
 
     constructor(
@@ -80,8 +81,20 @@ contract HatchFeeRouter {
     }
 
     /// @notice PONS escrow amount currently credited to this fee recipient.
+    /// @dev Returns 0 rather than reverting so a read-only frontend never breaks on escrow changes.
     function pendingPonsFees() external view returns (uint256) {
-        return ponsEscrow.balanceOfToken(address(this), quoteToken);
+        try ponsEscrow.balanceOfToken(address(this), quoteToken) returns (uint256 pending) {
+            return pending;
+        } catch {
+            return 0;
+        }
+    }
+
+    /// @notice Total quote asset this call would distribute right now (escrow credit + stray router balance).
+    function claimableTotal() external view returns (uint256) {
+        uint256 pending;
+        try ponsEscrow.balanceOfToken(address(this), quoteToken) returns (uint256 p) { pending = p; } catch {}
+        return pending + IERC20Minimal(quoteToken).balanceOf(address(this));
     }
 
     /// @notice Claim all PONS NVDA fees and split the router's entire NVDA balance 70/20/10.
@@ -91,7 +104,10 @@ contract HatchFeeRouter {
         nonReentrant
         returns (uint256 total, uint256 nestAmount, uint256 hookedAmount, uint256 teamAmount)
     {
-        ponsEscrow.claimToken(quoteToken);
+        // A revert here (e.g. PONS reverting on a zero credit) must not block distributing
+        // quote tokens the router already holds, including tokens sent here directly.
+        try ponsEscrow.claimToken(quoteToken) returns (uint256) {} catch {}
+
         total = IERC20Minimal(quoteToken).balanceOf(address(this));
         if (total == 0) return (0, 0, 0, 0);
 

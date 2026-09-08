@@ -64,3 +64,42 @@ contract MockPonsFactory {
         recipient = newRecipient;
     }
 }
+
+/// @notice Escrow that always reverts, to prove a bad escrow cannot brick the router.
+contract RevertingEscrow {
+    error EscrowDown();
+    function claimToken(address) external pure returns (uint256) { revert EscrowDown(); }
+    function claimToken(address, uint256) external pure returns (uint256) { revert EscrowDown(); }
+    function balanceOfToken(address, address) external pure returns (uint256) { revert EscrowDown(); }
+}
+
+/// @notice Malicious quote token that re-enters claimAndSplit on transfer.
+contract ReenteringToken {
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+    address public target;
+
+    function setTarget(address t) external { target = t; }
+    function mint(address to, uint256 amount) external { balanceOf[to] += amount; }
+    function approve(address spender, uint256 amount) external returns (bool) {
+        allowance[msg.sender][spender] = amount; return true;
+    }
+
+    function transfer(address to, uint256 amount) external returns (bool) {
+        balanceOf[msg.sender] -= amount;
+        balanceOf[to] += amount;
+        // Re-enter on the way out.
+        (bool ok, bytes memory err) = target.call(abi.encodeWithSignature("claimAndSplit()"));
+        if (!ok) {
+            assembly { revert(add(err, 0x20), mload(err)) }
+        }
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+        allowance[from][msg.sender] -= amount;
+        balanceOf[from] -= amount;
+        balanceOf[to] += amount;
+        return true;
+    }
+}

@@ -26,9 +26,9 @@ These were current when this package was prepared (2026-09-08). **Re-verify befo
 
 - Chain ID: `4663`
 - PONS V2 Launch Factory: `0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e`
-- PONS V2 Fee Escrow: `0xd3AFEB2a57f70ef218Aa82451c51B2fb0416Ac9e`
+- PONS V2 Fee Escrow: `0xd3AFEB2a57f70eF218Aa82451c51B2fb0416Ac9e`
 - NVIDIA Robinhood Token (NVDA): `0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC`
-- Uniswap v4 PoolManager: `0x8366a39cc670b4001a1121b8f6a443a643e40951`
+- Uniswap v4 PoolManager: `0x8366a39CC670B4001A1121B8F6A443A643e40951`
 
 ## Preview the site
 

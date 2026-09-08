@@ -23,7 +23,7 @@ Optional lightweight registry for adding HATCH and later experiments to HOOKED.
 ```text
 Robinhood Chain ID      4663
 PONS V2 Factory         0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e
-PONS V2 Fee Escrow      0xd3AFEB2a57f70ef218Aa82451c51B2fb0416Ac9e
+PONS V2 Fee Escrow      0xd3AFEB2a57f70eF218Aa82451c51B2fb0416Ac9e
 NVDA quote asset        0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC
 ```
 

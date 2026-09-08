@@ -38,7 +38,7 @@ HATCH intentionally sets additional creator tax to 0%.
 ## Robinhood Chain NVDA
 
 Tokenized NVIDIA quote token used for the PONS pair:
-`0xd0601CE157Db5BDc3162BbaC2a2C8aF5320D9EEC`
+`0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC`
 
 Observed as:
 - symbol: NVDA
