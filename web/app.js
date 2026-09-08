@@ -20,7 +20,8 @@
     nestBalance: "0xdb06eb9b",
     pendingPonsFees: "0x11972416",
     claimableTotal: "0xf52c3711",
-    claimAndSplit: "0xbf988ea7"
+    claimAndSplit: "0xbf988ea7",
+    hatchLocked: "0x9d4c1c9d"
   };
 
   /* ---------------------------------------------------------------- utils */
@@ -196,6 +197,7 @@
     nest: isAddr(cfg.nest) ? cfg.nest : null,
     router: isAddr(cfg.feeRouter) ? cfg.feeRouter : null,
     nvda: isAddr(cfg.nvda) ? cfg.nvda : null,
+    locker: isAddr(cfg.buybackLocker) ? cfg.buybackLocker : null,
     token: isAddr(cfg.hatchToken) ? cfg.hatchToken : null
   };
 
@@ -267,6 +269,7 @@
     set("hatch-token", deployed.token, "NOT LAUNCHED");
     set("nest-address", deployed.nest, "DEPLOY FIRST");
     set("router-address", deployed.router, "DEPLOY FIRST");
+    set("locker-address", deployed.locker, "DEPLOY FIRST");
     set("nvda-address", deployed.nvda, cfg.nvda || "—");
 
     const trade = $("trade-link");
@@ -313,6 +316,12 @@
       ]);
       const pendEl = $("pending-fees");
       if (pendEl) pendEl.textContent = pending === null ? "—" : `${formatUnits(pending)} NVDA`;
+
+      if (deployed.locker && deployed.token) {
+        const lockedRaw = await callUint(deployed.token, SEL.balanceOf + padAddr(deployed.locker));
+        const el = $("hatch-locked");
+        if (el) el.textContent = lockedRaw === null ? "—" : `${formatUnits(lockedRaw, 0)} HATCH`;
+      }
 
       const claimBtn = $("claim-button");
       if (claimBtn) {

@@ -33,8 +33,15 @@ for every caller. `claimAndSplit` simulates cleanly from an unrelated address.
 
 | Contract | Address | Deploy tx | Explorer verified |
 |---|---|---|---|
-| HatchNestVault | `0xebb9Bd45d87FeC54c4ee34445b288816603A43e5` | `0xd0f5fad0e553dbe40775cfe6188c2216589e29d941b882a95a78ec436b414697` | ☐ |
-| HatchFeeRouter | `0x8377292Fa54d0C53C590DAeCaCD719365E425e82` | `0x8f46af2977e3812d1b23f5bf19f741b3677d6c9413363b565e12fb82656339cf` | ☐ |
+| HatchNestVault (v1, SUPERSEDED) | `0xebb9Bd45d87FeC54c4ee34445b288816603A43e5` | `0xd0f5fad0e553dbe40775cfe6188c2216589e29d941b882a95a78ec436b414697` | n/a |
+| HatchFeeRouter (v1, SUPERSEDED) | `0x8377292Fa54d0C53C590DAeCaCD719365E425e82` | `0x8f46af2977e3812d1b23f5bf19f741b3677d6c9413363b565e12fb82656339cf` | n/a |
+| HatchNestVault | `TBD` | `TBD` | ☐ |
+| HatchBuybackLocker | `TBD` | `TBD` | ☐ |
+| HatchFeeRouterV2 | `TBD` | `TBD` | ☐ |
+
+The v1 pair above were deployed before the buyback leg existed. They are bound to
+nothing (no token ever launched against them) and are **not used**. v1's router
+splits 70/20/10 with no buyback; v2 splits 50/20/20/10.
 | HookedLaunchRegistry | not deployed | — | n/a |
 
 ### Operator addresses
@@ -76,7 +83,7 @@ unusable. Deploy it separately with live governance if launches 002+ need it.
 
 | Item | Value |
 |---|---|
-| HATCH token | `TBD` |
+| HATCH token | `0x0e819C089b8cA4277522df11727B8CB92Ef37771` |
 | Bonding curve | `TBD` |
 | Launch tx | `TBD` |
 | CREATE2 salt | `TBD` |

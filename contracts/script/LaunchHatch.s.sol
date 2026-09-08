@@ -61,6 +61,12 @@ interface IERC20 {
     function approve(address, uint256) external returns (bool);
 }
 
+interface IHatchBuybackLocker {
+    function initialise(address hatchToken, address curve) external;
+    function initialiser() external view returns (address);
+    function hatchToken() external view returns (address);
+}
+
 /// @notice Launches HATCH on PONS V2 with the deployed HatchFeeRouter as creator-fee recipient.
 ///
 /// Run AFTER DeployHatch, because this needs the router address.
@@ -70,6 +76,8 @@ interface IERC20 {
 ///     --rpc-url $ROBINHOOD_RPC_URL --broadcast
 ///
 /// Required env: PRIVATE_KEY, FEE_ROUTER
+/// Optional env: BUYBACK_LOCKER - if set, initialise() is called in this same run,
+///               which permanently burns the locker's initialiser role
 /// Optional env: LAUNCH_CONFIG_ID (default 0), SALT_SEED, LOGO_URI, WEBSITE, TWITTER,
 ///               DESCRIPTION, DEV_BUY_NVDA_WEI, DEV_BUY_SLIPPAGE_BPS
 contract LaunchHatch is Script {
@@ -157,9 +165,21 @@ contract LaunchHatch is Script {
         vm.startBroadcast(pk);
         (address token, address curve) = FACTORY.launchToken{value: fee}(params, configId, NVDA);
 
+        // Bind the buyback locker to the launch it will buy from. This is the only
+        // moment it can be done, and it burns the initialiser role permanently.
+        address locker = vm.envOr("BUYBACK_LOCKER", address(0));
+        if (locker != address(0)) {
+            IHatchBuybackLocker(locker).initialise(token, curve);
+        }
+
         uint256 bought;
         if (devBuy > 0) bought = _openingBuy(curve, devBuy, slippageBps, launcher);
         vm.stopBroadcast();
+
+        if (locker != address(0)) {
+            require(IHatchBuybackLocker(locker).hatchToken() == token, "locker not bound to this launch");
+            require(IHatchBuybackLocker(locker).initialiser() == address(0), "locker initialiser not burned");
+        }
 
         console2.log("");
         console2.log("HATCH token        ", token);
@@ -172,6 +192,11 @@ contract LaunchHatch is Script {
         console2.log("Next: put the token address in web/config.js as hatchToken, redeploy the site,");
         console2.log("and record token + curve + tx hash in docs/DEPLOYMENTS.md.");
         console2.log("NOTE: governance is burned, so bindLaunch() is intentionally NOT called.");
+        if (locker != address(0)) {
+            console2.log("buyback locker bound and its initialiser is now burned:", locker);
+            console2.log("After the curve graduates, call configurePool(PoolKey) once to enable");
+            console2.log("v4 buybacks. Until then the slice is forwarded to the Nest, never stranded.");
+        }
     }
 
     /// @dev Opening buy from the launcher, which the factory exempts from the snipe

@@ -58,7 +58,7 @@ RPC="${ROBINHOOD_RPC_URL:-https://rpc.mainnet.chain.robinhood.com}"
 
 # A fork rehearsal must never publish fork addresses to the live site.
 IS_FORK=0
-case "$RPC" in *127.0.0.1*|*localhost*) IS_FORK=1 ;; esac
+case "$RPC" in *127.0.0.1*|*localhost*|*0.0.0.0*) IS_FORK=1 ;; esac
 : "${HOOKED_TREASURY:?HOOKED_TREASURY missing from .env}"
 : "${TEAM_TREASURY:?TEAM_TREASURY missing from .env}"
 export ROBINHOOD_RPC_URL="$RPC" HOOKED_TREASURY TEAM_TREASURY
@@ -100,7 +100,8 @@ cat <<EOF
 $PLAN
 
   deployer            $DEPLOYER
-  nest        70%  →  (deployed in step 2)
+  nest        50%  →  (deployed in step 2, NVDA locked forever)
+  buyback     20%  →  (deployed in step 2, buys HATCH and locks it forever)
   hooked      20%  →  $HOOKED_TREASURY
   team        10%  →  $TEAM_TREASURY
   governance       →  ${RED}BURNED${RST} (0x…dEaD) — irreversible, no admin ever
@@ -116,14 +117,21 @@ read -rp "Type LAUNCH to continue: " c
 cd contracts
 if [ "$DO_DEPLOY" = "0" ]; then
   ROUTER="${FEE_ROUTER:?--launch-only needs FEE_ROUTER in .env}"
+  LOCKER="${BUYBACK_LOCKER:?--launch-only needs BUYBACK_LOCKER in .env}"
   NEST="${NEST_ADDRESS:-}"
   ok "using existing router $ROUTER"
+  ok "using existing locker $LOCKER"
 else
 step "2/5  Deploying Nest + Router"
+# Explorer verification needs a real verifier; skip it on a fork, and never let
+# a verification failure look like a deployment failure.
 VERIFY_FLAG="--verify"
-[ "$IS_FORK" = "1" ] && VERIFY_FLAG=""
+if [ "$IS_FORK" = "1" ]; then
+  VERIFY_FLAG=""
+  warn "local RPC detected — fork rehearsal mode (no verify, no publish)"
+fi
 forge script script/DeployHatch.s.sol:DeployHatch --rpc-url "$RPC" --broadcast $VERIFY_FLAG 2>&1 \
-  | tee /tmp/hatch-deploy.log | grep -E "HatchNestVault|HatchFeeRouter|BURNED" || true
+  | tee /tmp/hatch-deploy.log | grep -E "HatchNestVault|BuybackLocker|HatchFeeRouter|BURNED" || true
 grep -q "ONCHAIN EXECUTION COMPLETE" /tmp/hatch-deploy.log \
   || die "deployment failed — see /tmp/hatch-deploy.log"
 # Source verification is cosmetic and often unavailable; never fail the launch on it.
@@ -138,9 +146,15 @@ import json;d=json.load(open('$RUN'))
 print(next(t['contractAddress'] for t in d['transactions'] if t.get('contractName')=='HatchNestVault'))")
 ROUTER=$(python3 -c "
 import json;d=json.load(open('$RUN'))
-print(next(t['contractAddress'] for t in d['transactions'] if t.get('contractName')=='HatchFeeRouter'))")
-NEST=$(cast to-check-sum-address "$NEST"); ROUTER=$(cast to-check-sum-address "$ROUTER")
+print(next(t['contractAddress'] for t in d['transactions'] if t.get('contractName')=='HatchFeeRouterV2'))")
+LOCKER=$(python3 -c "
+import json;d=json.load(open('$RUN'))
+print(next(t['contractAddress'] for t in d['transactions'] if t.get('contractName')=='HatchBuybackLocker'))")
+NEST=$(cast to-check-sum-address "$NEST")
+ROUTER=$(cast to-check-sum-address "$ROUTER")
+LOCKER=$(cast to-check-sum-address "$LOCKER")
 ok "HatchNestVault  $NEST"
+ok "BuybackLocker   $LOCKER"
 ok "HatchFeeRouter  $ROUTER"
 fi
 
@@ -148,12 +162,13 @@ fi
 if [ "$DO_LAUNCH" = "0" ]; then
   cd "$ROOT"
   step "Contracts deployed — token NOT launched"
-  python3 - "$NEST" "$ROUTER" <<'PY2'
+  python3 - "$NEST" "$ROUTER" "$LOCKER" <<'PY2'
 import re, sys
-nest, router = sys.argv[1:3]
+nest, router, locker = sys.argv[1:4]
 p='web/config.js'; s=open(p).read()
-s=re.sub(r'nest:\s*"[^"]*"',      f'nest: "{nest}"', s)
-s=re.sub(r'feeRouter:\s*"[^"]*"', f'feeRouter: "{router}"', s)
+s=re.sub(r'nest:\s*"[^"]*"',          f'nest: "{nest}"', s)
+s=re.sub(r'feeRouter:\s*"[^"]*"',     f'feeRouter: "{router}"', s)
+s=re.sub(r'buybackLocker:\s*"[^"]*"', f'buybackLocker: "{locker}"', s)
 open(p,'w').write(s)
 PY2
   ok "web/config.js updated with Nest + Router"
@@ -161,12 +176,14 @@ PY2
 
 ${GRN}${BOLD}CONTRACTS ARE LIVE. THE TOKEN IS NOT.${RST}
 
-  Nest (70%)      $NEST
+  Nest (50%)      $NEST
+  Buyback (20%)   $LOCKER
   Fee router      $ROUTER
 
 Nothing exists on PONS yet. When you are ready to create HATCH:
 
   ${BOLD}echo "FEE_ROUTER=$ROUTER" >> .env${RST}
+  ${BOLD}echo "BUYBACK_LOCKER=$LOCKER" >> .env${RST}
   ${BOLD}./scripts/launch.sh --launch-only${RST}
 
 EOF
@@ -184,7 +201,7 @@ if [ -n "${DEV_BUY_NVDA:-}" ]; then
     || die "launcher holds too little NVDA for a $DEV_BUY_NVDA NVDA opening buy"
 fi
 export DEV_BUY_NVDA_WEI
-FEE_ROUTER="$ROUTER" forge script script/LaunchHatch.s.sol:LaunchHatch \
+FEE_ROUTER="$ROUTER" BUYBACK_LOCKER="$LOCKER" forge script script/LaunchHatch.s.sol:LaunchHatch \
   --rpc-url "$RPC" --broadcast 2>&1 | tee /tmp/hatch-launch.log | grep -E "HATCH token|bonding curve|launchFee|Error" || true
 grep -q "ONCHAIN EXECUTION COMPLETE" /tmp/hatch-launch.log || die "launch failed — see /tmp/hatch-launch.log"
 
@@ -204,13 +221,14 @@ cd "$ROOT"
 
 # ---------------------------------------------------------------- 4. wire site
 step "4/5  Writing addresses into the site and docs"
-python3 - "$TOKEN" "$NEST" "$ROUTER" <<'PY'
+python3 - "$TOKEN" "$NEST" "$ROUTER" "$LOCKER" <<'PY'
 import re, sys
-token, nest, router = sys.argv[1:4]
+token, nest, router, locker = sys.argv[1:5]
 p = 'web/config.js'; s = open(p).read()
-s = re.sub(r'hatchToken:\s*"[^"]*"', f'hatchToken: "{token}"', s)
-s = re.sub(r'nest:\s*"[^"]*"',       f'nest: "{nest}"', s)
-s = re.sub(r'feeRouter:\s*"[^"]*"',  f'feeRouter: "{router}"', s)
+s = re.sub(r'hatchToken:\s*"[^"]*"',    f'hatchToken: "{token}"', s)
+s = re.sub(r'nest:\s*"[^"]*"',          f'nest: "{nest}"', s)
+s = re.sub(r'feeRouter:\s*"[^"]*"',     f'feeRouter: "{router}"', s)
+s = re.sub(r'buybackLocker:\s*"[^"]*"', f'buybackLocker: "{locker}"', s)
 open(p,'w').write(s)
 
 p = 'docs/DEPLOYMENTS.md'; d = open(p).read()
@@ -248,7 +266,8 @@ ${GRN}${BOLD}$([ "$IS_FORK" = "1" ] && echo "FORK REHEARSAL COMPLETE — nothing
 
   HATCH token     $TOKEN
   bonding curve   $CURVE
-  Nest (70%)      $NEST
+  Nest (50%)      $NEST
+  Buyback (20%)   $LOCKER
   Fee router      $ROUTER
   Explorer        https://robinhoodchain.blockscout.com/address/$TOKEN
   Site            https://hookedlabs.vercel.app/hatch

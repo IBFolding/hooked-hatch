@@ -10,11 +10,11 @@
   <link rel="apple-touch-icon" href="./assets/hooked-icon-dark.svg" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="HATCH — Feed the egg." />
-  <meta property="og:description" content="Every HATCH trade routes creator-fee NVDA into the Nest. Nobody knows what's inside." />
+  <meta property="og:description" content="Every HATCH trade routes creator-fee NVDA into the Nest and buys HATCH off the market to lock forever. Nobody knows what's inside." />
   <meta property="og:image" content="./assets/social/og-hatch.svg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="HATCH — Feed the egg." />
-  <meta name="twitter:description" content="Every HATCH trade routes creator-fee NVDA into the Nest. Nobody knows what's inside." />
+  <meta name="twitter:description" content="Every HATCH trade routes creator-fee NVDA into the Nest and buys HATCH off the market to lock forever. Nobody knows what's inside." />
   <meta name="twitter:image" content="./assets/social/og-hatch.svg" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
@@ -30,7 +30,7 @@
       <div class="hatch-copy">
         <div class="eyebrow"><span class="live-dot"></span> EXPERIMENT 001 / HATCH / NVDA</div>
         <h1>FEED<br>THE <span>EGG.</span></h1>
-        <p>Nobody knows what's inside. Every HATCH trade routes creator-fee NVDA into the Nest.</p>
+        <p>Nobody knows what's inside. Every HATCH trade routes creator-fee NVDA into the Nest and buys HATCH off the market to lock forever.</p>
         <div class="actions">
           <a id="trade-link" class="cta" href="#" target="_blank" rel="noopener">TRADE ON PONS ↗</a>
           <button id="connect-button" class="ghost" type="button">CONNECT WALLET</button>
@@ -71,6 +71,10 @@
             <span>PENDING PONS CREATOR FEES</span>
             <strong id="pending-fees">—</strong>
           </div>
+          <div class="claim-info">
+            <span>HATCH BOUGHT &amp; LOCKED</span>
+            <strong id="hatch-locked">—</strong>
+          </div>
           <button id="claim-button" class="ghost" type="button" disabled>CLAIM &amp; FEED</button>
         </div>
         <p class="claim-note">Permissionless. Anyone may claim HATCH's creator fees from PONS escrow and trigger the 70/20/10 split. The caller earns nothing but gas costs.</p>
@@ -87,9 +91,9 @@
         <div class="flow-arrow">→</div>
         <article><b>02</b><h3>CLAIM</h3><p>The HATCH fee router claims creator-fee NVDA from PONS escrow.</p></article>
         <div class="flow-arrow">→</div>
-        <article><b>03</b><h3>SPLIT</h3><p><strong>70%</strong> Nest · <strong>20%</strong> HOOKED · <strong>10%</strong> team.</p></article>
+        <article><b>03</b><h3>SPLIT</h3><p><strong>50%</strong> Nest · <strong>20%</strong> buyback &amp; lock · <strong>20%</strong> HOOKED · <strong>10%</strong> team.</p></article>
         <div class="flow-arrow">→</div>
-        <article><b>04</b><h3>EVOLVE</h3><p>The actual NVDA balance controls the egg's stage.</p></article>
+        <article><b>04</b><h3>EVOLVE</h3><p>The actual NVDA balance controls the egg's stage. The buyback slice buys HATCH and locks it forever.</p></article>
       </div>
     </section>
 
@@ -107,6 +111,7 @@
         <div><span>NVDA (QUOTE ASSET)</span><code id="nvda-address">0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC</code></div>
         <div><span>NEST</span><code id="nest-address">DEPLOY FIRST</code></div>
         <div><span>FEE ROUTER</span><code id="router-address">DEPLOY FIRST</code></div>
+        <div><span>BUYBACK LOCK</span><code id="locker-address">DEPLOY FIRST</code></div>
       </div>
     </section>
   </main>

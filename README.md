@@ -4,7 +4,8 @@ HOOKED is an experimental launch gallery for mechanism-driven meme coins on Robi
 
 Launch #001 is **HATCH**: a PONS token paired with tokenized NVIDIA (NVDA). PONS creator fees are routed to a dedicated `HatchFeeRouter`, which claims NVDA from the PONS V2 fee escrow and splits it:
 
-- **70%** → HATCH Nest (permanently locked NVDA)
+- **50%** → HATCH Nest (permanently locked NVDA)
+- **20%** → buyback & lock (buys HATCH off the market, locks it forever)
 - **20%** → HOOKED treasury
 - **10%** → team/operations
 

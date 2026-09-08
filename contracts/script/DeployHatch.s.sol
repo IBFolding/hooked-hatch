@@ -4,7 +4,8 @@ pragma solidity ^0.8.26;
 import {Script} from "forge-std/Script.sol";
 import {console2} from "forge-std/console2.sol";
 import {HatchNestVault} from "../src/HatchNestVault.sol";
-import {HatchFeeRouter} from "../src/HatchFeeRouter.sol";
+import {HatchFeeRouterV2} from "../src/HatchFeeRouterV2.sol";
+import {HatchBuybackLocker} from "../src/HatchBuybackLocker.sol";
 import {HookedLaunchRegistry} from "../src/HookedLaunchRegistry.sol";
 
 interface IPonsFactoryView {
@@ -16,8 +17,12 @@ interface IERC20Meta {
 }
 
 /// @notice Deploys the HATCH mechanism contracts in the required order.
-/// @dev Deployment order is Nest -> Router -> Registry, because the router takes the
-///      nest address as an immutable constructor argument.
+/// @dev Deployment order is Nest -> BuybackLocker -> Router, because each takes the
+///      previous addresses as immutable constructor arguments.
+///
+///      The locker's initialiser is the deployer. It is a ONE-SHOT role: calling
+///      initialise() after the PONS launch zeroes it permanently. The launch script
+///      does that in the same run, so the window is a single transaction wide.
 ///
 /// Usage:
 ///   forge script script/DeployHatch.s.sol:DeployHatch \
@@ -43,6 +48,7 @@ contract DeployHatch is Script {
     address constant NVDA_DEFAULT = 0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC;
     address constant ESCROW_DEFAULT = 0xd3AFEB2a57f70eF218Aa82451c51B2fb0416Ac9e;
     address constant FACTORY_DEFAULT = 0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e;
+    address constant POOL_MANAGER_DEFAULT = 0x8366a39CC670B4001A1121B8F6A443A643e40951;
     uint256 constant EXPECTED_CHAIN_ID = 4663;
 
     /// @dev The router constructor rejects address(0), so a burn must be a real address.
@@ -52,6 +58,7 @@ contract DeployHatch is Script {
         address nvda = vm.envOr("NVDA", NVDA_DEFAULT);
         address escrow = vm.envOr("PONS_ESCROW", ESCROW_DEFAULT);
         address factory = vm.envOr("PONS_FACTORY", FACTORY_DEFAULT);
+        address poolManager = vm.envOr("POOL_MANAGER", POOL_MANAGER_DEFAULT);
 
         address governance = vm.envOr("ROUTER_GOVERNANCE", BURN);
         address hookedTreasury = vm.envAddress("HOOKED_TREASURY");
@@ -66,8 +73,13 @@ contract DeployHatch is Script {
         vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
 
         HatchNestVault nest = new HatchNestVault(nvda, thresholds);
-        HatchFeeRouter router = new HatchFeeRouter(
-            nvda, escrow, factory, address(nest), hookedTreasury, teamTreasury, governance
+
+        // The deployer is the locker's one-shot initialiser; LaunchHatch burns it.
+        HatchBuybackLocker locker =
+            new HatchBuybackLocker(nvda, address(nest), poolManager, vm.addr(vm.envUint("PRIVATE_KEY")));
+
+        HatchFeeRouterV2 router = new HatchFeeRouterV2(
+            nvda, escrow, factory, address(nest), address(locker), hookedTreasury, teamTreasury, governance
         );
 
         // The registry is optional and NOT required to launch. Its governance must
@@ -84,12 +96,14 @@ contract DeployHatch is Script {
         console2.log("=== HATCH DEPLOYMENT ===");
         console2.log("chain id        ", block.chainid);
         console2.log("HatchNestVault  ", address(nest));
+        console2.log("BuybackLocker   ", address(locker));
         console2.log("HatchFeeRouter  ", address(router));
         if (deployRegistry) console2.log("LaunchRegistry  ", registry);
         console2.log("");
-        console2.log("nest    70%  ->", address(nest));
-        console2.log("hooked  20%  ->", hookedTreasury);
-        console2.log("team    10%  ->", teamTreasury);
+        console2.log("nest     50%  ->", address(nest));
+        console2.log("buyback  20%  ->", address(locker));
+        console2.log("hooked   20%  ->", hookedTreasury);
+        console2.log("team     10%  ->", teamTreasury);
         console2.log("");
         if (governance == BURN) {
             console2.log("GOVERNANCE IS BURNED:", governance);
@@ -100,6 +114,7 @@ contract DeployHatch is Script {
         }
         console2.log("");
         console2.log("Next: launch HATCH on PONS with creatorFeeRecipient =", address(router));
+        console2.log("      then LaunchHatch calls locker.initialise(token, curve)");
         console2.log("Then: record all addresses + tx hashes in docs/DEPLOYMENTS.md");
     }
 
