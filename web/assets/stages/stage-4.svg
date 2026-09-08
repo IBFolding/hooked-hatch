@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="HATCH stage 4: EYE CONTACT">
+  <defs>
+    <linearGradient id="shell" x1="0.2" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#EDEFE3"/><stop offset="0.55" stop-color="#B7C0B0"/><stop offset="1" stop-color="#798476"/>
+    </linearGradient>
+    <radialGradient id="chamber" cx="0.5" cy="0.46">
+      <stop offset="0" stop-color="#182016"/><stop offset="0.55" stop-color="#0c0f0d"/><stop offset="1" stop-color="#080A09"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#chamber)"/>
+  
+  <g transform="">
+    <path d="M256 104 C298 104 332 156 332 216 C332 300 298 376 256 376 C214 376 180 300 180 216 C180 156 214 104 256 104 Z" fill="url(#shell)"/>
+    
+    <g fill="none" stroke="#2b322c" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.79">
+      <path d="M268 156 l16 32 l-10 10 l20 28 M284 188 l30 -8 M274 198 l-14 34" /><path d="M210 248 l-20 24 l12 18 l-8 20 M202 272 l-22 6" />
+    </g>
+    <g><ellipse cx="252" cy="232" rx="34" ry="15" fill="#050605"/><circle cx="252" cy="231" r="7" fill="#B9FF2C"/><ellipse cx="252" cy="232" rx="34" ry="15" fill="none" stroke="#B9FF2C" stroke-width="2" opacity="0.5"/></g>
+  </g>
+  <text x="256" y="452" text-anchor="middle" font-family="monospace" font-weight="700" font-size="22" letter-spacing="4" fill="#8F978D">4 / EYE CONTACT</text>
+</svg>

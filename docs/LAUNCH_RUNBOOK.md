@@ -14,18 +14,50 @@
 
 ## Before signing anything
 
-1. Re-read PONS V2 factory live config:
-   - chain ID is 4663
-   - public launch gate is open / launcher is allowed
-   - NVDA is currently approved by PONS
-   - read current launch fee
-   - read NVDA graduation threshold/economics
-   - read current base fee policy
-2. Verify NVDA contract symbol/decimals onchain.
-3. Confirm HOOKED treasury and team addresses. Prefer Safe/multisig for HOOKED treasury.
-4. Deploy `HatchNestVault`.
-5. Deploy `HatchFeeRouter` pointing at the Nest and treasury addresses.
-6. Verify both contracts on the explorer.
+### 1. Run the automated preflight
+
+```bash
+node scripts/verify-chain.mjs
+```
+
+This asserts every external precondition HATCH depends on and exits non-zero on
+failure: chain id 4663, code present at the factory/escrow/NVDA/PoolManager,
+`decimals() == 18`, `approvedPairTokens(NVDA) == true`, launch config 0 active,
+and that every selector our contracts call is present in the deployed bytecode.
+It prints live pair economics for a human to eyeball but never asserts them.
+
+**Re-run it immediately before signing.** It reads mutable mainnet state.
+
+### 2. Run the live fork test suite
+
+```bash
+cd contracts
+ROBINHOOD_RPC_URL=https://rpc.mainnet.chain.robinhood.com forge test --match-contract PonsFork -vv
+```
+
+This deploys the real HATCH contracts against a fork of live chain state and
+reads through the production PONS escrow, proving our ABI still matches.
+
+### 3. Confirm operator inputs
+
+Confirm the HOOKED treasury, team and governance addresses. Governance and the
+HOOKED treasury should both be a Safe/multisig. These are **immutable** in the
+router once deployed - there is no setter.
+
+### 4. Deploy
+
+```bash
+cd contracts
+PRIVATE_KEY=... GOVERNANCE=... HOOKED_TREASURY=... TEAM_TREASURY=... \
+  forge script script/DeployHatch.s.sol:DeployHatch \
+  --rpc-url $ROBINHOOD_RPC_URL --broadcast --verify
+```
+
+The script runs its own onchain preflight and reverts before spending gas if the
+chain, NVDA decimals or PONS approval are not what we expect. Deployment order is
+Nest -> Router -> Registry and is enforced by the router's constructor.
+
+Verify all three contracts on the explorer.
 
 ## PONS launch values
 
@@ -49,10 +81,11 @@ Use PONS `previewLaunchEconomics` immediately before submission and pin the retu
 2. Call `HatchFeeRouter.bindLaunch(HATCH_TOKEN)` from governance.
 3. Add HATCH to `HookedLaunchRegistry` if registry is deployed.
 4. Update `web/config.js` with:
-   - HATCH token
-   - PONS HATCH URL
-   - Nest address
-   - Fee Router address
+   - `hatchToken`
+   - `hatchPonsUrl`
+   - `nest`
+   - `feeRouter`
+   Then run `node scripts/validate-config.mjs`.
 5. Redeploy site.
 6. Execute a tiny real trade only after PONS launch-window snipe tax has decayed.
 7. Wait for/trigger a normal PONS fee sweep.
@@ -60,6 +93,11 @@ Use PONS `previewLaunchEconomics` immediately before submission and pin the retu
 9. Call `claimAndSplit()`.
 10. Verify exact 70/20/10 token transfers onchain.
 11. Verify the website Nest balance increments.
+12. Re-run the preflight with the deployed addresses included:
+    ```bash
+    NEST_ADDRESS=0x... ROUTER_ADDRESS=0x... node scripts/verify-chain.mjs
+    ```
+13. Record every address and tx hash in `docs/DEPLOYMENTS.md`.
 
 ## Ship gate
 

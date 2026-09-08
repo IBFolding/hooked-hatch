@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="HATCH stage 5: CONTAINMENT FAILING">
+  <defs>
+    <linearGradient id="shell" x1="0.2" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#EDEFE3"/><stop offset="0.55" stop-color="#B7C0B0"/><stop offset="1" stop-color="#798476"/>
+    </linearGradient>
+    <radialGradient id="chamber" cx="0.5" cy="0.46">
+      <stop offset="0" stop-color="#182016"/><stop offset="0.55" stop-color="#0c0f0d"/><stop offset="1" stop-color="#080A09"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#chamber)"/>
+  <ellipse cx="256" cy="250" rx="120" ry="150" fill="#B9FF2C" opacity="0.10" filter="url(#soft)"/>
+  <g transform="">
+    <path d="M256 104 C298 104 332 156 332 216 C332 300 298 376 256 376 C214 376 180 300 180 216 C180 156 214 104 256 104 Z" fill="url(#shell)"/>
+    
+    <g fill="none" stroke="#2b322c" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.90">
+      <path d="M266 148 l18 36 l-12 12 l22 32 M284 184 l34 -10 M272 196 l-16 40 M300 228 l24 14" /><path d="M208 242 l-22 26 l14 20 l-10 24 M200 268 l-26 8 M214 300 l-18 22" />
+    </g>
+    <g><ellipse cx="252" cy="232" rx="34" ry="15" fill="#050605"/><circle cx="252" cy="231" r="7" fill="#B9FF2C"/><ellipse cx="252" cy="232" rx="34" ry="15" fill="none" stroke="#B9FF2C" stroke-width="2" opacity="0.5"/></g>
+  </g>
+  <text x="256" y="452" text-anchor="middle" font-family="monospace" font-weight="700" font-size="22" letter-spacing="4" fill="#8F978D">5 / CONTAINMENT FAILING</text>
+</svg>

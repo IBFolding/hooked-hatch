@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="HOOKED">
+  <rect width="512" height="512" fill="#E9EADF"/>
+  <g transform="translate(88.0 100.0) scale(4.0)"><g fill="none" stroke="#4B7A00" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="62" cy="17" r="11"/>
+    <path d="M62 28 V52 A20 20 0 1 1 22 52 L17 40"/>
+  </g>
+  <path d="M17 16 L28 41 L6 41 Z" fill="#4B7A00" stroke="none"/></g>
+</svg>
