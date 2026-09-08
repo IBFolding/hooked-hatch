@@ -103,7 +103,11 @@ CRACKS = [
 
 STAGE_NAMES = ["DORMANT","HAIRLINE","CRACKED","MOVEMENT","EYE CONTACT","CONTAINMENT FAILING","HATCHED","???"]
 
-def stage_svg(i, size=512, label=True):
+# Robin's egg blue, desaturated to stay compatible with the carbon/acid palette.
+SHELL_BONE = ("#EDEFE3", "#B7C0B0", "#798476")
+SHELL_ROBIN = ("#DFF6EF", "#8FCFBE", "#4F8478")
+
+def stage_svg(i, size=512, label=True, shell=SHELL_BONE):
     glow = ""
     eye = ""
     inner = ""
@@ -133,7 +137,7 @@ def stage_svg(i, size=512, label=True):
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="{size}" height="{size}" role="img" aria-label="HATCH stage {i}: {STAGE_NAMES[i]}">
   <defs>
     <linearGradient id="shell" x1="0.2" y1="0" x2="0.85" y2="1">
-      <stop offset="0" stop-color="#EDEFE3"/><stop offset="0.55" stop-color="#B7C0B0"/><stop offset="1" stop-color="#798476"/>
+      <stop offset="0" stop-color="{shell[0]}"/><stop offset="0.55" stop-color="{shell[1]}"/><stop offset="1" stop-color="{shell[2]}"/>
     </linearGradient>
     <radialGradient id="chamber" cx="0.5" cy="0.46">
       <stop offset="0" stop-color="#182016"/><stop offset="0.55" stop-color="#0c0f0d"/><stop offset="1" stop-color="{CARBON}"/>
@@ -159,6 +163,9 @@ for i in range(8):
 
 # HATCH PFP: stage 2, no label, tight crop
 write("hatch-pfp.svg", stage_svg(2, label=False))
+write("hatch-pfp-robin.svg", stage_svg(2, label=False, shell=SHELL_ROBIN))
+for _i in range(8):
+    write(f"stages/robin/stage-{_i}.svg", stage_svg(_i, shell=SHELL_ROBIN))
 write("hatch-mark.svg", f'''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="HATCH">
   <defs><linearGradient id="s" x1="0.2" y1="0" x2="0.85" y2="1">

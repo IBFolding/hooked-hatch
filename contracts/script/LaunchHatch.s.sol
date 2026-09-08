@@ -70,7 +70,8 @@ interface IERC20 {
 ///     --rpc-url $ROBINHOOD_RPC_URL --broadcast
 ///
 /// Required env: PRIVATE_KEY, FEE_ROUTER
-/// Optional env: LAUNCH_CONFIG_ID (default 0), SALT_SEED, LOGO_URI, WEBSITE, TWITTER
+/// Optional env: LAUNCH_CONFIG_ID (default 0), SALT_SEED, LOGO_URI, WEBSITE, TWITTER,
+///               DESCRIPTION, DEV_BUY_NVDA_WEI, DEV_BUY_SLIPPAGE_BPS
 contract LaunchHatch is Script {
     IPonsV2LaunchFactory constant FACTORY =
         IPonsV2LaunchFactory(0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e);
@@ -110,8 +111,15 @@ contract LaunchHatch is Script {
         IPonsV2LaunchFactory.TokenParams memory params = IPonsV2LaunchFactory.TokenParams({
             name: "HATCH",
             symbol: "HATCH",
-            logo: vm.envOr("LOGO_URI", string("https://hookedlabs.vercel.app/assets/hatch-pfp.svg")),
-            description: "Feed the egg. Every trade routes creator-fee NVDA into the HATCH Nest. The Nest has no withdrawal function.",
+            logo: vm.envOr("LOGO_URI", string("https://raw.githubusercontent.com/IBFolding/hooked-hatch/main/web/assets/png/hatch-pfp.png")),
+            description: vm.envOr(
+                "DESCRIPTION",
+                string(
+                    "A robin's egg on Robinhood Chain, fattened on tokenized NVDA with every trade. "
+                    "Creator fees split 70% Nest / 20% HOOKED / 10% team. The Nest has no withdrawal "
+                    "function, no admin, governance burned. Feed the egg. Nobody knows what hatches."
+                )
+            ),
             socials: IPonsV2LaunchFactory.Socials({
                 twitter: vm.envOr("TWITTER", string("")),
                 telegram: "",
