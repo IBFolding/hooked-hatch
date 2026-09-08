@@ -185,6 +185,67 @@ contract HatchTest is Test {
         assertEq(router.teamTreasury(), team, "team immutable");
     }
 
+    // --- burned governance --------------------------------------------------
+
+    /// @dev HOOKED ships with router governance burned. The core mechanism must be
+    ///      fully functional with NO privileged actor in existence.
+    function test_BurnedGovernance_MechanismStillWorks() public {
+        address burn = address(0xdEaD);
+        HatchNestVault n2 = new HatchNestVault(address(token), THRESHOLDS);
+        HatchFeeRouter r = new HatchFeeRouter(
+            address(token), address(escrow), address(factory), address(n2), hooked, team, burn
+        );
+
+        token.mint(address(this), 100 ether);
+        token.approve(address(escrow), 100 ether);
+        escrow.credit(address(r), 100 ether);
+
+        // Anyone at all can advance the mechanism.
+        vm.prank(address(0xA11CE));
+        (uint256 total, uint256 nAmt, uint256 h, uint256 t) = r.claimAndSplit();
+
+        assertEq(total, 100 ether, "claim");
+        assertEq(nAmt, 70 ether, "nest 70%");
+        assertEq(h, 20 ether, "hooked 20%");
+        assertEq(t, 10 ether, "team 10%");
+        assertEq(token.balanceOf(address(n2)), 70 ether, "nest funded");
+        assertEq(token.balanceOf(address(r)), 0, "no dust");
+        assertEq(n2.stage(), 5, "nest stage advanced");
+    }
+
+    /// @dev With governance burned, the privileged functions must be unreachable
+    ///      by everyone - including the burn address itself having no key.
+    function test_BurnedGovernance_PrivilegedFunctionsAreDead() public {
+        address burn = address(0xdEaD);
+        HatchFeeRouter r = new HatchFeeRouter(
+            address(token), address(escrow), address(factory), address(nest), hooked, team, burn
+        );
+
+        // The deployer cannot bind.
+        vm.expectRevert(HatchFeeRouter.NotGovernance.selector);
+        r.bindLaunch(address(0x1234));
+
+        // Nor can any third party.
+        vm.prank(address(0xA11CE));
+        vm.expectRevert(HatchFeeRouter.NotGovernance.selector);
+        r.bindLaunch(address(0x1234));
+
+        // Migration is doubly dead: never bound, and not callable anyway.
+        vm.expectRevert(HatchFeeRouter.NotGovernance.selector);
+        r.migratePonsRecipient(address(0x9999));
+
+        assertEq(r.hatchToken(), address(0), "must remain unbound forever");
+        assertEq(r.governance(), burn, "governance is the burn address");
+    }
+
+    /// @dev address(0) is rejected, so a burn MUST use a non-zero burn address.
+    function test_ZeroGovernanceIsRejected() public {
+        vm.expectRevert(HatchFeeRouter.ZeroAddress.selector);
+        new HatchFeeRouter(
+            address(token), address(escrow), address(factory), address(nest), hooked, team, address(0)
+        );
+    }
+
     // --- nest --------------------------------------------------------------
 
     function test_NestStages() public {

@@ -33,13 +33,36 @@ Explorer: https://robinhoodchain.blockscout.com
 
 | Role | Address | Type |
 |---|---|---|
-| Governance | `TBD` | Safe (required) |
-| HOOKED treasury | `TBD` | Safe (required) |
-| Team / ops | `TBD` | |
+| Router governance | `0x000000000000000000000000000000000000dEaD` | **BURNED** |
+| HOOKED treasury (20%) | `0xFC41AF875a352b1d9A61bB1ec4f08e3a72d78a63` | EOA |
+| Team / ops (10%) | `0xa9E3c85208250d97FED0B8eD1c659e5bEd8442f1` | EOA |
 
-Governance, HOOKED treasury and team are **immutable** in `HatchFeeRouter`.
-They cannot be changed after deployment. Only the PONS creator-fee recipient can
-be migrated, via `migratePonsRecipient`, and that never touches Nest principal.
+All three are **immutable** in `HatchFeeRouter` and cannot be changed after
+deployment.
+
+### Governance is burned — what that means
+
+HATCH ships with **no privileged actor**. Router governance is set to the burn
+address, so:
+
+- `bindLaunch()` can never be called. `hatchToken` stays `address(0)` forever.
+- `migratePonsRecipient()` can never be called. PONS creator fees can never be
+  redirected away from this router, by anyone, including the deployer.
+- There is no admin, no upgrade path, no pause, and no rescue function.
+
+The mechanism is entirely unaffected by this:
+
+- `claimAndSplit()` is permissionless — anyone can advance the Nest.
+- The 70/20/10 split is immutable `constant` values.
+- The Nest has no withdrawal function and never did.
+
+`address(0)` is rejected by the router constructor, which is why the burn uses
+`0x...dEaD`. Verified by `test_BurnedGovernance_MechanismStillWorks` and
+`test_BurnedGovernance_PrivilegedFunctionsAreDead`.
+
+The `HookedLaunchRegistry` is **not deployed** in this release. It is optional,
+the site does not read it, and burning its governance would make it permanently
+unusable. Deploy it separately with live governance if launches 002+ need it.
 
 ### HATCH token (PONS launch)
 
