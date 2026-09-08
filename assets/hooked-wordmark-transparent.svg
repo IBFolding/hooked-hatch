@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 180" width="760" height="180" role="img" aria-label="HOOKED">
+  
+  <g transform="translate(51.9 47.0) scale(1.05)"><g fill="none" stroke="#B9FF2C" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="62" cy="17" r="11"/>
+    <path d="M62 28 V52 A20 20 0 1 1 22 52 L17 40"/>
+  </g>
+  <path d="M17 16 L28 41 L6 41 Z" fill="#B9FF2C" stroke="none"/></g>
+  <text x="164" y="126" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="900"
+        font-size="112" letter-spacing="-7" fill="#E9EADF">HOOKED</text>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 500" width="1500" height="500" role="img" aria-label="HOOKED banner">
+  <defs><radialGradient id="g" cx="0.72" cy="0.5"><stop offset="0" stop-color="#161d15"/><stop offset="1" stop-color="#080A09"/></radialGradient></defs>
+  <rect width="1500" height="500" fill="url(#g)"/>
+  <g transform="translate(89.8 168.1) scale(2.1)"><g fill="none" stroke="#B9FF2C" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="62" cy="17" r="11"/>
+    <path d="M62 28 V52 A20 20 0 1 1 22 52 L17 40"/>
+  </g>
+  <path d="M17 16 L28 41 L6 41 Z" fill="#B9FF2C" stroke="none"/></g>
+  <text x="290" y="250" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="900" font-size="132" letter-spacing="-9" fill="#E9EADF">GET HOOKED.</text>
+  <text x="296" y="308" font-family="monospace" font-weight="700" font-size="26" letter-spacing="7" fill="#B9FF2C">TOKENS WITH A MECHANISM INSIDE.</text>
+  <text x="296" y="356" font-family="monospace" font-weight="700" font-size="19" letter-spacing="4" fill="#8F978D">ROBINHOOD CHAIN / EXPERIMENT 001: HATCH</text>
+  <rect x="0" y="484" width="1500" height="16" fill="#B9FF2C"/>
+</svg>
