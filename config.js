@@ -17,8 +17,8 @@ window.HOOKED_CONFIG = {
   // --- Deployed HATCH addresses (fill in after deployment) ---
   hatchToken: "",
   hatchPonsUrl: "",
-  nest: "",
-  feeRouter: "",
+  nest: "0xebb9Bd45d87FeC54c4ee34445b288816603A43e5",
+  feeRouter: "0x8377292Fa54d0C53C590DAeCaCD719365E425e82",
 
   // --- Canonical Robinhood Chain addresses (verified onchain 2026-09-08) ---
   nvda: "0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC",
