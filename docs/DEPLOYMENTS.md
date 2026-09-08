@@ -21,13 +21,21 @@ Explorer: https://robinhoodchain.blockscout.com
 | NVDA (quote asset) | `0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC` | symbol NVDA, decimals 18 |
 | Uniswap v4 PoolManager | `0x8366a39CC670B4001A1121B8F6A443A643e40951` | code present, 24009B |
 
+Deployed at block `57841969` by `0xa9E3c85208250d97FED0B8eD1c659e5bEd8442f1`.
+
+Verified onchain after deployment:
+`quoteToken`=NVDA, `nest`=vault, `hookedTreasury`=`0xFC41…8a63`,
+`teamTreasury`=`0xa9E3…42f1`, `governance`=`0x…dEaD`, split `7000/2000/1000`,
+`hatchToken`=`0x0` (unbound, permanently). `bindLaunch` reverts `NotGovernance`
+for every caller. `claimAndSplit` simulates cleanly from an unrelated address.
+
 ### HATCH contracts
 
 | Contract | Address | Deploy tx | Explorer verified |
 |---|---|---|---|
-| HatchNestVault | `TBD` | `TBD` | ☐ |
-| HatchFeeRouter | `TBD` | `TBD` | ☐ |
-| HookedLaunchRegistry | `TBD` | `TBD` | ☐ |
+| HatchNestVault | `0xebb9Bd45d87FeC54c4ee34445b288816603A43e5` | `0xd0f5fad0e553dbe40775cfe6188c2216589e29d941b882a95a78ec436b414697` | ☐ |
+| HatchFeeRouter | `0x8377292Fa54d0C53C590DAeCaCD719365E425e82` | `0x8f46af2977e3812d1b23f5bf19f741b3677d6c9413363b565e12fb82656339cf` | ☐ |
+| HookedLaunchRegistry | not deployed | — | n/a |
 
 ### Operator addresses
 
