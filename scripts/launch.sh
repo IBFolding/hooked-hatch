@@ -16,6 +16,24 @@
 
 set -euo pipefail
 
+# --no-launch : deploy the contracts and wire the site, but do NOT create the
+#               HATCH token on PONS. Run this script again later to launch.
+# --launch-only : skip deployment and only launch, using FEE_ROUTER from .env.
+DO_DEPLOY=1; DO_LAUNCH=1
+for arg in "$@"; do
+  case "$arg" in
+    --no-launch)   DO_LAUNCH=0 ;;
+    --launch-only) DO_DEPLOY=0 ;;
+    -h|--help)
+      echo "usage: ./scripts/launch.sh [--no-launch | --launch-only]"
+      echo "  (no flags)     deploy contracts AND launch HATCH on PONS"
+      echo "  --no-launch    deploy contracts only; no token is created"
+      echo "  --launch-only  launch the token using FEE_ROUTER from .env"
+      exit 0 ;;
+    *) echo "unknown option: $arg" >&2; exit 1 ;;
+  esac
+done
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
@@ -63,9 +81,20 @@ ok "balance  $BAL ETH"
 awk -v b="$BAL" 'BEGIN{exit !(b+0 < 0.002)}' && die "balance too low; need ~0.002 ETH for both transactions"
 
 # ---------------------------------------------------------------- confirm
+if [ "$DO_LAUNCH" = "1" ] && [ "$DO_DEPLOY" = "1" ]; then
+  PLAN="${BOLD}About to broadcast TWO real transactions on Robinhood Chain (4663).${RST}
+  ${RED}This DEPLOYS the contracts AND CREATES the HATCH token on PONS.${RST}"
+elif [ "$DO_LAUNCH" = "0" ]; then
+  PLAN="${BOLD}About to broadcast ONE real transaction on Robinhood Chain (4663).${RST}
+  ${GRN}Contracts only. NO token is created. Nothing appears on PONS.${RST}"
+else
+  PLAN="${BOLD}About to broadcast ONE real transaction on Robinhood Chain (4663).${RST}
+  ${RED}This CREATES the HATCH token on PONS using the router in .env.${RST}"
+fi
+
 cat <<EOF
 
-${BOLD}About to broadcast two real transactions on Robinhood Chain (4663).${RST}
+$PLAN
 
   deployer            $DEPLOYER
   nest        70%  →  (deployed in step 2)
@@ -81,8 +110,13 @@ read -rp "Type LAUNCH to continue: " c
 [ "$c" = "LAUNCH" ] || die "aborted"
 
 # ---------------------------------------------------------------- 2. deploy
-step "2/5  Deploying Nest + Router"
 cd contracts
+if [ "$DO_DEPLOY" = "0" ]; then
+  ROUTER="${FEE_ROUTER:?--launch-only needs FEE_ROUTER in .env}"
+  NEST="${NEST_ADDRESS:-}"
+  ok "using existing router $ROUTER"
+else
+step "2/5  Deploying Nest + Router"
 VERIFY_FLAG="--verify"
 [ "$IS_FORK" = "1" ] && VERIFY_FLAG=""
 forge script script/DeployHatch.s.sol:DeployHatch --rpc-url "$RPC" --broadcast $VERIFY_FLAG 2>&1 \
@@ -105,8 +139,37 @@ print(next(t['contractAddress'] for t in d['transactions'] if t.get('contractNam
 NEST=$(cast to-check-sum-address "$NEST"); ROUTER=$(cast to-check-sum-address "$ROUTER")
 ok "HatchNestVault  $NEST"
 ok "HatchFeeRouter  $ROUTER"
+fi
 
 # ---------------------------------------------------------------- 3. launch
+if [ "$DO_LAUNCH" = "0" ]; then
+  cd "$ROOT"
+  step "Contracts deployed — token NOT launched"
+  python3 - "$NEST" "$ROUTER" <<'PY2'
+import re, sys
+nest, router = sys.argv[1:3]
+p='web/config.js'; s=open(p).read()
+s=re.sub(r'nest:\s*"[^"]*"',      f'nest: "{nest}"', s)
+s=re.sub(r'feeRouter:\s*"[^"]*"', f'feeRouter: "{router}"', s)
+open(p,'w').write(s)
+PY2
+  ok "web/config.js updated with Nest + Router"
+  cat <<EOF
+
+${GRN}${BOLD}CONTRACTS ARE LIVE. THE TOKEN IS NOT.${RST}
+
+  Nest (70%)      $NEST
+  Fee router      $ROUTER
+
+Nothing exists on PONS yet. When you are ready to create HATCH:
+
+  ${BOLD}echo "FEE_ROUTER=$ROUTER" >> .env${RST}
+  ${BOLD}./scripts/launch.sh --launch-only${RST}
+
+EOF
+  exit 0
+fi
+
 step "3/5  Launching HATCH on PONS"
 FEE_ROUTER="$ROUTER" forge script script/LaunchHatch.s.sol:LaunchHatch \
   --rpc-url "$RPC" --broadcast 2>&1 | tee /tmp/hatch-launch.log | grep -E "HATCH token|bonding curve|launchFee|Error" || true
