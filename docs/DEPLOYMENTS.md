@@ -72,13 +72,15 @@ unusable. Deploy it separately with live governance if launches 002+ need it.
 | Bonding curve | `TBD` |
 | Launch tx | `TBD` |
 | CREATE2 salt | `TBD` |
-| Launch config id | `TBD` |
+| Launch config id | `0` (launchConfigCount == 1) |
 | `creatorFeeRecipient` | `TBD` (must equal HatchFeeRouter) |
 | `creatorTaxBps` | `0` |
 | `buybackEnabled` | `false` |
 | PONS trade URL | `TBD` |
 | Launch fee paid | `TBD` |
 | Pair economics at launch | `TBD` (record what `pairTokenEconomics` returned) |
+| Launch selector used | `0xf35abbcf` launchToken(TokenParams,uint256,address) |
+| Economics digest | `TBD` (read fresh via previewLaunchEconomics at signing) |
 
 ### Post-launch confirmations
 
