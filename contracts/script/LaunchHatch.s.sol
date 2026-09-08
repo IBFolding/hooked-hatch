@@ -95,13 +95,13 @@ contract LaunchHatch is Script {
         IPonsV2LaunchFactory.TokenParams memory params = IPonsV2LaunchFactory.TokenParams({
             name: "HATCH",
             symbol: "HATCH",
-            logo: vm.envOr("LOGO_URI", string("https://hooked-lab.vercel.app/assets/hatch-pfp.svg")),
+            logo: vm.envOr("LOGO_URI", string("https://hookedlabs.vercel.app/assets/hatch-pfp.svg")),
             description: "Feed the egg. Every trade routes creator-fee NVDA into the HATCH Nest. The Nest has no withdrawal function.",
             socials: IPonsV2LaunchFactory.Socials({
                 twitter: vm.envOr("TWITTER", string("")),
                 telegram: "",
                 discord: "",
-                website: vm.envOr("WEBSITE", string("https://hooked-lab.vercel.app/hatch")),
+                website: vm.envOr("WEBSITE", string("https://hookedlabs.vercel.app/hatch")),
                 farcaster: ""
             }),
             creatorFeeRecipient: router,
