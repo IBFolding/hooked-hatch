@@ -166,7 +166,7 @@ write("hatch-pfp.svg", stage_svg(2, label=False))
 write("hatch-pfp-robin.svg", stage_svg(2, label=False, shell=SHELL_ROBIN))
 for _i in range(8):
     write(f"stages/robin/stage-{_i}.svg", stage_svg(_i, shell=SHELL_ROBIN))
-write("hatch-mark.svg", f'''
+write("hatch-mark-bone.svg", f'''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="HATCH">
   <defs><linearGradient id="s" x1="0.2" y1="0" x2="0.85" y2="1">
     <stop offset="0" stop-color="#EDEFE3"/><stop offset="0.55" stop-color="#B7C0B0"/><stop offset="1" stop-color="#798476"/>
@@ -202,7 +202,7 @@ def og(title_lines, sub, kicker, egg=False):
     <radialGradient id="g2" cx="0.7" cy="0.45"><stop offset="0" stop-color="#161d15"/><stop offset="1" stop-color="{CARBON}"/></radialGradient>
     <filter id="soft2"><feGaussianBlur stdDeviation="40"/></filter>
     <linearGradient id="shell2" x1="0.2" y1="0" x2="0.85" y2="1">
-      <stop offset="0" stop-color="#EDEFE3"/><stop offset="0.55" stop-color="#B7C0B0"/><stop offset="1" stop-color="#798476"/>
+      <stop offset="0" stop-color="#DFF6EF"/><stop offset="0.55" stop-color="#8FCFBE"/><stop offset="1" stop-color="#4F8478"/>
     </linearGradient>
   </defs>
   <rect width="1200" height="630" fill="url(#g2)"/>

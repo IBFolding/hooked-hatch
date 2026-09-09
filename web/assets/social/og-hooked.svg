@@ -3,7 +3,7 @@
     <radialGradient id="g2" cx="0.7" cy="0.45"><stop offset="0" stop-color="#161d15"/><stop offset="1" stop-color="#080A09"/></radialGradient>
     <filter id="soft2"><feGaussianBlur stdDeviation="40"/></filter>
     <linearGradient id="shell2" x1="0.2" y1="0" x2="0.85" y2="1">
-      <stop offset="0" stop-color="#EDEFE3"/><stop offset="0.55" stop-color="#B7C0B0"/><stop offset="1" stop-color="#798476"/>
+      <stop offset="0" stop-color="#DFF6EF"/><stop offset="0.55" stop-color="#8FCFBE"/><stop offset="1" stop-color="#4F8478"/>
     </linearGradient>
   </defs>
   <rect width="1200" height="630" fill="url(#g2)"/>

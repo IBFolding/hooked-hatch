@@ -119,7 +119,7 @@ contract LaunchHatch is Script {
         IPonsV2LaunchFactory.TokenParams memory params = IPonsV2LaunchFactory.TokenParams({
             name: "HATCH",
             symbol: "HATCH",
-            logo: vm.envOr("LOGO_URI", string("https://raw.githubusercontent.com/IBFolding/hooked-hatch/main/web/assets/png/hatch-pfp.png")),
+            logo: vm.envOr("LOGO_URI", string("https://raw.githubusercontent.com/IBFolding/hooked-hatch/main/web/assets/png/hatch-pfp-robin.png")),
             description: vm.envOr(
                 "DESCRIPTION",
                 string(
