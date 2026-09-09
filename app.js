@@ -383,13 +383,13 @@
   async function doClaim() {
     try {
       if (!deployed.router) throw new Error("The fee router is not deployed yet.");
-      status("Claiming PONS fees and splitting 70/20/10 — confirm in your wallet…");
+      status("Sweeping PONS fees into the split (50/20/20/10) — this pays you nothing. Confirm in your wallet…");
       const tx = await wallet.send(deployed.router, SEL.claimAndSplit);
       renderWallet();
       status(`Splitting… tx ${short(tx)}`);
       const rec = await wallet.waitForReceipt(tx);
       if (rec && rec.status === "0x0") throw new Error("Claim transaction reverted.");
-      status("Fees claimed and split. The Nest has been fed.", "ok");
+      status("Fees swept and split. The Nest has been fed.", "ok");
       await refresh();
     } catch (e) {
       status(e && e.message ? e.message : String(e), "error");
