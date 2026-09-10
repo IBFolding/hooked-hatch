@@ -68,3 +68,10 @@
 @media(max-width:850px){.hero-hook-3d{display:none}}
 
 @media(max-width:1200px){.hero-hook-3d{right:-10vw;width:min(34vw,380px)}}
+
+/* 002 card: the mini egg re-skinned as a cell */
+.p-mini{background:#2a3a1c!important;border-radius:48% 52% 44% 56%/54% 46% 58% 42%!important;
+  box-shadow:inset -18px -10px 0 #1b2612!important;animation:squirm 6s ease-in-out infinite}
+.p-mini:before{background:#b9ff2c!important;opacity:.5}
+@keyframes squirm{0%,100%{border-radius:48% 52% 44% 56%/54% 46% 58% 42%}
+  50%{border-radius:56% 44% 58% 42%/44% 58% 42% 56%}}
