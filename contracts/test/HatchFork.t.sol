@@ -50,15 +50,16 @@ contract HatchForkTest is Test {
     address curve;
     bool forked;
 
-    uint256 constant CRACK = 5 ether; // small, so a fork whale can fill it
-    uint256[7] T = [uint256(0.1 ether), 0.5 ether, 1 ether, 2 ether, 3 ether, 4 ether, CRACK];
+    uint256 constant CRACK = 5 ether; // round 1, small enough for a fork whale
+    uint256 constant GROWTH = 20_000;
+    uint256 constant MAXCRACK = 100 ether;
 
     function setUp() public {
         string memory url = vm.envOr("ROBINHOOD_RPC_URL", string(""));
         if (bytes(url).length == 0) return;
         try vm.createSelectFork(url) { forked = true; } catch { return; }
 
-        egg = new HatchEgg(NVDA, POOL_MANAGER, address(this), T);
+        egg = new HatchEgg(NVDA, POOL_MANAGER, address(this), CRACK, GROWTH, MAXCRACK);
         router = new HatchFeeRouter(
             NVDA, ESCROW, address(FACTORY), address(egg), address(0xA11CE), address(0xB0B), address(0xdEaD)
         );
@@ -151,15 +152,23 @@ contract HatchForkTest is Test {
         emit log_named_decimal_uint("bounty paid (NVDA) ", bounty, 18);
     }
 
-    /// @dev The flywheel must repeat, not fire once.
-    function test_MultipleCyclesOnCurve() public onlyForked {
+    /// @dev The flywheel must repeat AND escalate: each round asks for more.
+    function test_MultipleCyclesEscalateOnCurve() public onlyForked {
+        uint256 lastThreshold;
         for (uint256 i = 1; i <= 3; ++i) {
-            _fund(address(egg), CRACK);
+            uint256 need = egg.crackThreshold();
+            assertGt(need, lastThreshold, "round did not escalate");
+            lastThreshold = need;
+
+            _fund(address(egg), need);
             vm.prank(address(0xC4AC));
             egg.crackEgg(1);
+
             assertEq(egg.crackCount(), i, "cycle");
             assertEq(egg.eggBalance(), 0, "not emptied");
+            assertEq(egg.round(), i + 1, "round counter");
+            emit log_named_decimal_uint("round threshold cracked", need, 18);
         }
-        emit log_named_decimal_uint("burned over 3 cracks", egg.totalBurned(), 18);
+        emit log_named_decimal_uint("burned over 3 rounds", egg.totalBurned(), 18);
     }
 }

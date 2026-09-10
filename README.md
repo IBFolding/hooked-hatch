@@ -8,10 +8,13 @@ Launch #001 is **HATCH**: a PONS token paired with tokenized NVIDIA (NVDA). PONS
 - **20%** → HOOKED treasury
 - **10%** → team/operations
 
-The egg fills with NVDA in public. When it reaches the crack threshold, **anyone**
+The egg fills with NVDA in public. When it reaches the round's threshold, **anyone**
 can crack it: the egg spends every NVDA inside buying HATCH on the open market and
-**burns** it, and the caller keeps **5%** as a bounty. Then the egg refills and it
-happens again.
+**burns** it, and the caller keeps **5%** as a bounty.
+
+Then it refills — and **each round demands twice as much as the last**, capped so it
+can never escalate out of reach. Round 1 cracks at 5 NVDA, round 2 at 10, round 3 at
+20, and so on to the ceiling. Every crack is bigger than the one before.
 
 Nothing is paid to holders. The egg has no withdrawal function and no admin — NVDA
 can only ever leave through a crack, which can only buy-and-burn.

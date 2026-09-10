@@ -50,20 +50,18 @@ contract DeployHatch is Script {
         address governance = vm.envOr("ROUTER_GOVERNANCE", BURN);
         address hookedTreasury = vm.envAddress("HOOKED_TREASURY");
         address teamTreasury = vm.envAddress("TEAM_TREASURY");
-        uint256 crack = vm.envOr("CRACK_THRESHOLD_ETHER", uint256(50)) * 1 ether;
+        // Round 1's size, how much each later round grows, and the ceiling.
+        uint256 base = vm.envOr("CRACK_THRESHOLD_ETHER", uint256(5)) * 1 ether;
+        uint256 growthBps = vm.envOr("CRACK_GROWTH_BPS", uint256(20_000)); // 2x per round
+        uint256 maxCrack = vm.envOr("CRACK_MAX_ETHER", uint256(250)) * 1 ether;
 
         _preflight(nvda, escrow, factory, governance, hookedTreasury, teamTreasury);
         require(hookedTreasury != teamTreasury, "treasury and team must differ - the 20% must be auditable");
 
-        // Stage display ramps to the crack threshold; stage 7 means crackable.
-        uint256[7] memory t = [
-            crack / 50, crack / 10, crack / 5, (crack * 2) / 5, (crack * 3) / 5, (crack * 4) / 5, crack
-        ];
-
         uint256 pk = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(pk);
 
-        HatchEgg egg = new HatchEgg(nvda, poolManager, vm.addr(pk), t);
+        HatchEgg egg = new HatchEgg(nvda, poolManager, vm.addr(pk), base, growthBps, maxCrack);
         HatchFeeRouter router =
             new HatchFeeRouter(nvda, escrow, factory, address(egg), hookedTreasury, teamTreasury, governance);
 
@@ -78,7 +76,9 @@ contract DeployHatch is Script {
         console2.log("egg      70%  ->", address(egg));
         console2.log("hooked   20%  ->", hookedTreasury);
         console2.log("team     10%  ->", teamTreasury);
-        console2.log("crack threshold (NVDA wei)", crack);
+        console2.log("round 1 cracks at (NVDA wei)", base);
+        console2.log("each round grows by (bps)   ", growthBps);
+        console2.log("capped at (NVDA wei)        ", maxCrack);
         console2.log("cracker bounty  5% of the egg");
         console2.log("");
         if (governance == BURN) {

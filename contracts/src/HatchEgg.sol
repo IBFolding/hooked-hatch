@@ -57,16 +57,25 @@ contract HatchEgg is IUnlockCallback {
 
     address public immutable asset; // NVDA
     IPoolManager public immutable poolManager;
-    uint256 public immutable crackThreshold;
+
+    /// @notice Round 1's threshold. Every later round grows from this.
+    uint256 public immutable baseThreshold;
+    /// @notice Growth applied after each crack, in bps. 20_000 = the next round
+    ///         needs 2x the last. 10_000 would mean a flat threshold forever.
+    uint256 public immutable growthBps;
+    /// @notice Ceiling, so the egg can never escalate itself out of reach.
+    uint256 public immutable maxThreshold;
+
+    /// @notice What this round needs. Advances on every crack, capped at
+    ///         maxThreshold. Cached rather than recomputed so reads stay O(1)
+    ///         no matter how many rounds have been played.
+    uint256 public crackThreshold;
 
     address public hatchToken;
     address public curve;
     PoolKey public poolKey;
     bool public poolConfigured;
     address public initialiser;
-
-    /// @dev Stage display only. thresholds[6] is the crack threshold.
-    uint256[7] public thresholds;
 
     uint256 public totalFed;
     uint256 public totalBurned;
@@ -80,7 +89,13 @@ contract HatchEgg is IUnlockCallback {
     event PoolConfigured(address indexed hatchToken);
     event Fed(address indexed feeder, uint256 amount, uint256 newBalance, uint8 stage);
     event Cracked(
-        address indexed cracker, uint256 eggSize, uint256 bounty, uint256 spent, uint256 burned, uint256 crackNumber
+        address indexed cracker,
+        uint256 eggSize,
+        uint256 bounty,
+        uint256 spent,
+        uint256 burned,
+        uint256 round,
+        uint256 nextThresholdForRound
     );
 
     modifier nonReentrant() {
@@ -90,16 +105,25 @@ contract HatchEgg is IUnlockCallback {
         _entered = 1;
     }
 
-    constructor(address asset_, address poolManager_, address initialiser_, uint256[7] memory thresholds_) {
+    constructor(
+        address asset_,
+        address poolManager_,
+        address initialiser_,
+        uint256 baseThreshold_,
+        uint256 growthBps_,
+        uint256 maxThreshold_
+    ) {
         if (asset_ == address(0) || poolManager_ == address(0) || initialiser_ == address(0)) revert ZeroAddress();
-        for (uint256 i = 1; i < thresholds_.length; ++i) {
-            require(thresholds_[i] > thresholds_[i - 1], "THRESHOLDS_NOT_ASCENDING");
-        }
+        require(baseThreshold_ > 0, "BASE_THRESHOLD_ZERO");
+        require(growthBps_ >= BPS, "GROWTH_BELOW_ONE");
+        require(maxThreshold_ >= baseThreshold_, "MAX_BELOW_BASE");
         asset = asset_;
         poolManager = IPoolManager(poolManager_);
         initialiser = initialiser_;
-        thresholds = thresholds_;
-        crackThreshold = thresholds_[6];
+        baseThreshold = baseThreshold_;
+        growthBps = growthBps_;
+        maxThreshold = maxThreshold_;
+        crackThreshold = baseThreshold_;
     }
 
     // --- one-shot wiring ---------------------------------------------------
@@ -146,6 +170,17 @@ contract HatchEgg is IUnlockCallback {
         return eggBalance() >= crackThreshold && hatchToken != address(0);
     }
 
+    /// @notice Which round is being filled right now. Round 1 is the first.
+    function round() external view returns (uint256) {
+        return crackCount + 1;
+    }
+
+    /// @notice What the round after this one will require.
+    function nextRoundThreshold() public view returns (uint256 next) {
+        next = (crackThreshold * growthBps) / BPS;
+        if (next > maxThreshold) next = maxThreshold;
+    }
+
     /// @notice Crack the egg: buy HATCH with everything inside and burn it.
     ///         Permissionless. The caller keeps CRACKER_BPS of the egg.
     /// @param minHatchOut slippage floor for the market buy, enforced by the venue.
@@ -186,7 +221,10 @@ contract HatchEgg is IUnlockCallback {
         }
         lastCrackAt = block.timestamp;
 
-        emit Cracked(msg.sender, size, bounty, spent, burned, crackCount);
+        // The next round asks for more, up to the ceiling.
+        crackThreshold = nextRoundThreshold();
+
+        emit Cracked(msg.sender, size, bounty, spent, burned, crackCount, crackThreshold);
     }
 
     /// @dev v4 settlement: pay the quote asset in, take HATCH out.
@@ -235,23 +273,36 @@ contract HatchEgg is IUnlockCallback {
         return IERC20Minimal(asset).balanceOf(address(this));
     }
 
+    /// @dev Stage gates as a fraction of THIS round's threshold, in bps, so the
+    ///      art ramps identically however large the round is.
+    function _stageGateBps(uint8 i) private pure returns (uint256) {
+        if (i == 0) return 200;    // 2%
+        if (i == 1) return 1_000;  // 10%
+        if (i == 2) return 2_000;  // 20%
+        if (i == 3) return 4_000;  // 40%
+        if (i == 4) return 6_000;  // 60%
+        if (i == 5) return 8_000;  // 80%
+        return BPS;                // 100% - crackable
+    }
+
     /// @return Current stage 0-7. Stage 7 means the egg is ready to crack.
     function stage() public view returns (uint8) {
-        uint256 balance = eggBalance();
+        uint256 p = progressBps();
         uint8 s;
         for (uint8 i = 0; i < 7; ++i) {
-            if (balance < thresholds[i]) break;
+            if (p < _stageGateBps(i)) break;
             unchecked { ++s; }
         }
         return s;
     }
 
+    /// @notice NVDA still needed before this round can be cracked.
     function nextThreshold() external view returns (uint256) {
-        uint8 s = stage();
-        return s >= 7 ? 0 : thresholds[s];
+        uint256 balance = eggBalance();
+        return balance >= crackThreshold ? 0 : crackThreshold - balance;
     }
 
-    function progressBps() external view returns (uint256) {
+    function progressBps() public view returns (uint256) {
         uint256 balance = eggBalance();
         if (balance >= crackThreshold) return BPS;
         return (balance * BPS) / crackThreshold;

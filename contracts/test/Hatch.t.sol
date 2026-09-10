@@ -48,15 +48,16 @@ contract HatchTest is Test {
     address team = address(0xCAFE);
     address cracker = address(0xC4AC);
 
-    uint256 constant CRACK = 50 ether;
-    uint256[7] T = [uint256(1 ether), 5 ether, 10 ether, 20 ether, 30 ether, 40 ether, CRACK];
+    uint256 constant CRACK = 5 ether;      // round 1
+    uint256 constant GROWTH = 20_000;      // 2x per round
+    uint256 constant MAXCRACK = 100 ether;
 
     function setUp() public {
         nvda = new MockERC20();
         hatch = new MockHatch();
         escrow = new MockPonsEscrow(nvda);
         factory = new MockPonsFactory();
-        egg = new HatchEgg(address(nvda), address(0x4444), address(this), T);
+        egg = new HatchEgg(address(nvda), address(0x4444), address(this), CRACK, GROWTH, MAXCRACK);
         router = new HatchFeeRouter(
             address(nvda), address(escrow), address(factory), address(egg), hooked, team, address(0xdEaD)
         );
@@ -102,9 +103,9 @@ contract HatchTest is Test {
         vm.prank(cracker); // anyone
         (uint256 bounty, uint256 spent, uint256 burned) = egg.crackEgg(1);
 
-        assertEq(bounty, 2.5 ether, "5% bounty");
-        assertEq(spent, 47.5 ether, "95% spent");
-        assertEq(nvda.balanceOf(cracker), 2.5 ether, "cracker not paid");
+        assertEq(bounty, 0.25 ether, "5% bounty");
+        assertEq(spent, 4.75 ether, "95% spent");
+        assertEq(nvda.balanceOf(cracker), 0.25 ether, "cracker not paid");
         assertGt(burned, 0, "nothing burned");
 
         // The bought HATCH must be destroyed, not held.
@@ -122,7 +123,7 @@ contract HatchTest is Test {
     /// @dev The whole flywheel depends on this repeating, not firing once.
     function test_EggRefillsAndCracksAgain() public {
         for (uint256 i = 1; i <= 3; ++i) {
-            _fill(CRACK);
+            _fill(egg.crackThreshold());
             vm.prank(cracker);
             egg.crackEgg(1);
             assertEq(egg.crackCount(), i, "cycle count");
@@ -132,7 +133,7 @@ contract HatchTest is Test {
     }
 
     function testFuzz_CrackConservesValue(uint256 extra) public {
-        extra = bound(extra, 0, 1_000 ether);
+        extra = bound(extra, 0, 100 ether);
         _fill(CRACK + extra);
         uint256 size = egg.eggBalance();
 
@@ -151,7 +152,7 @@ contract HatchTest is Test {
     }
 
     function test_CannotCrackBeforeInitialisation() public {
-        HatchEgg fresh = new HatchEgg(address(nvda), address(0x4444), address(this), T);
+        HatchEgg fresh = new HatchEgg(address(nvda), address(0x4444), address(this), CRACK, GROWTH, MAXCRACK);
         nvda.mint(address(this), CRACK);
         nvda.approve(address(fresh), CRACK);
         fresh.feed(CRACK);
@@ -210,20 +211,69 @@ contract HatchTest is Test {
 
     function test_StagesTrackProgressToTheCrack() public {
         assertEq(egg.stage(), 0, "s0");
-        _fill(1 ether);   assertEq(egg.stage(), 1, "s1");
-        _fill(4 ether);   assertEq(egg.stage(), 2, "s2");
-        _fill(15 ether);  assertEq(egg.stage(), 4, "s4");
-        _fill(30 ether);  assertEq(egg.stage(), 7, "s7 = crackable");
+        _fill(0.1 ether);  assertEq(egg.stage(), 1, "2% -> s1");
+        _fill(0.4 ether);  assertEq(egg.stage(), 2, "10% -> s2");
+        _fill(1.5 ether);  assertEq(egg.stage(), 4, "40% -> s4");
+        _fill(3 ether);    assertEq(egg.stage(), 7, "100% -> s7");
         assertTrue(egg.crackable(), "crackable at stage 7");
         assertEq(egg.progressBps(), 10_000, "full");
     }
 
-    function testFuzz_StageMatchesThresholdTable(uint256 amount) public {
-        amount = bound(amount, 1, 200 ether);
+    /// @dev Stages are fractions of THIS round's threshold, so the art ramps the
+    ///      same way whether the round needs 5 NVDA or 100.
+    function testFuzz_StageMatchesProgress(uint256 amount) public {
+        amount = bound(amount, 1, CRACK);
         _fill(amount);
+        uint256 p = (amount * 10_000) / CRACK;
+        uint16[7] memory gates = [200, 1_000, 2_000, 4_000, 6_000, 8_000, 10_000];
         uint8 expected;
-        for (uint256 i = 0; i < 7; ++i) if (amount >= T[i]) expected++;
-        assertEq(egg.stage(), expected, "stage table");
+        for (uint256 i = 0; i < 7; ++i) { if (p < gates[i]) break; expected++; }
+        assertEq(egg.stage(), expected, "stage vs progress");
+    }
+
+    // --- rounds ------------------------------------------------------------
+
+    function test_RoundsEscalate() public {
+        assertEq(egg.round(), 1, "starts at round 1");
+        assertEq(egg.crackThreshold(), 5 ether, "round 1 threshold");
+        assertEq(egg.nextRoundThreshold(), 10 ether, "round 2 preview");
+
+        uint256[4] memory expected = [uint256(10 ether), 20 ether, 40 ether, 80 ether];
+        for (uint256 i = 0; i < expected.length; ++i) {
+            _fill(egg.crackThreshold());
+            vm.prank(cracker);
+            egg.crackEgg(1);
+            assertEq(egg.round(), i + 2, "round advanced");
+            assertEq(egg.crackThreshold(), expected[i], "threshold escalated");
+        }
+    }
+
+    /// @dev The egg must never escalate itself out of reach.
+    function test_ThresholdIsCapped() public {
+        for (uint256 i = 0; i < 8; ++i) {
+            _fill(egg.crackThreshold());
+            vm.prank(cracker);
+            egg.crackEgg(1);
+        }
+        assertEq(egg.crackThreshold(), MAXCRACK, "must cap at maxThreshold");
+        assertEq(egg.nextRoundThreshold(), MAXCRACK, "cap is sticky");
+    }
+
+    function test_ConstructorRejectsShrinkingRounds() public {
+        vm.expectRevert(bytes("GROWTH_BELOW_ONE"));
+        new HatchEgg(address(nvda), address(0x4444), address(this), 5 ether, 9_999, MAXCRACK);
+    }
+
+    function test_ConstructorRejectsCapBelowBase() public {
+        vm.expectRevert(bytes("MAX_BELOW_BASE"));
+        new HatchEgg(address(nvda), address(0x4444), address(this), 10 ether, 20_000, 5 ether);
+    }
+
+    function test_NextThresholdIsRemainingNotAbsolute() public {
+        _fill(2 ether);
+        assertEq(egg.nextThreshold(), 3 ether, "should report NVDA still needed");
+        _fill(3 ether);
+        assertEq(egg.nextThreshold(), 0, "nothing needed once crackable");
     }
 
     function test_FeedRevertsOnZero() public {
