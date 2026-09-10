@@ -18,8 +18,8 @@ window.HOOKED_CONFIG = {
   hatchToken: "",
   hatchPonsUrl: "",
   // The egg. Named `nest` for backwards compatibility with the page markup.
-  nest: "",
-  feeRouter: "",
+  nest: "0xcDD7B542D9a768F15159889006e29Da11CDc9484",
+  feeRouter: "0x37D6FB5ced95BB9372a43Ce5BbeA45FEAD20CfA1",
 
   // --- Canonical Robinhood Chain addresses (verified onchain 2026-09-08) ---
   nvda: "0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC",
