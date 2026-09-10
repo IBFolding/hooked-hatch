@@ -33,3 +33,11 @@
   .feed-box{max-width:none}
   .claim-row{align-items:flex-start}
 }
+
+/* --- crack the egg ----------------------------------------------------- */
+.crack-row{display:flex;align-items:center;justify-content:space-between;gap:26px;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:22px;padding-top:24px}
+.crack-label{display:block;color:#667066;font:700 10px monospace;letter-spacing:.12em;margin-bottom:10px}
+.crack-label b{color:var(--acid)}
+.crack-copy{margin:0;max-width:620px;color:#8f978d;font-size:13px;line-height:1.6}
+.crack-copy strong{color:var(--acid)}
+#crack-button:disabled{background:transparent;color:#667066;border-color:#333b34;cursor:not-allowed}

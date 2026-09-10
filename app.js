@@ -21,7 +21,12 @@
     pendingPonsFees: "0x11972416",
     claimableTotal: "0xf52c3711",
     claimAndSplit: "0xbf988ea7",
-    hatchLocked: "0x9d4c1c9d"
+    eggBalance: "0xe48f44ff",
+    crackable: "0x8b44feb3",
+    currentBounty: "0x0a4255e4",
+    totalBurned: "0xd89135cd",
+    crackThreshold: "0xd547a5d9",
+    crackEgg: "0xa50618fd"
   };
 
   /* ---------------------------------------------------------------- utils */
@@ -187,11 +192,17 @@
 
   const LABELS = [
     "DORMANT", "HAIRLINE", "CRACKED", "MOVEMENT",
-    "EYE CONTACT", "CONTAINMENT FAILING", "HATCHED", "???"
+    "EYE CONTACT", "CONTAINMENT FAILING", "HATCHED", "READY TO CRACK"
   ];
-  const thresholds = (cfg.stageThresholds || [1, 5, 10, 25, 50, 100, 250]).map((n) =>
-    BigInt(n) * 10n ** DECIMALS
-  );
+  // Thresholds may be fractional (0.5 NVDA), and BigInt(0.5) throws, so route
+  // every value through the string parser rather than BigInt() directly.
+  const thresholds = (cfg.stageThresholds || [1, 5, 10, 25, 50, 100, 250]).map((n) => {
+    try {
+      return parseUnits(String(n));
+    } catch {
+      return 0n;
+    }
+  });
 
   const deployed = {
     nest: isAddr(cfg.nest) ? cfg.nest : null,
@@ -306,6 +317,27 @@
     }
 
     $("network-state").textContent = `LIVE / CHAIN ${cfg.chainId}`;
+
+    // Crack state: the whole mechanic hangs off these.
+    const [burned, bounty, threshold, canCrack] = await Promise.all([
+      callUint(deployed.nest, SEL.totalBurned),
+      callUint(deployed.nest, SEL.currentBounty),
+      callUint(deployed.nest, SEL.crackThreshold),
+      callUint(deployed.nest, SEL.crackable)
+    ]);
+    const burnedEl = $("hatch-locked");
+    if (burnedEl) burnedEl.textContent = burned === null ? "—" : `${formatUnits(burned, 0)} HATCH`;
+    const bountyEl = $("crack-bounty");
+    if (bountyEl) bountyEl.textContent = bounty === null ? "—" : `${formatUnits(bounty)} NVDA`;
+    const thrEl = $("crack-threshold");
+    if (thrEl) thrEl.textContent = threshold === null ? "—" : `${formatUnits(threshold, 0)} NVDA`;
+    const crackBtn = $("crack-button");
+    if (crackBtn) {
+      const ready = canCrack === 1n;
+      crackBtn.disabled = !ready;
+      crackBtn.textContent = ready ? "CRACK THE EGG" : "EGG NOT READY";
+      crackBtn.title = ready ? "" : "The egg has not reached its crack threshold yet";
+    }
     // Prefer the contract's own view functions; they are the source of truth.
     renderNest(balance, stage === null ? undefined : Number(stage), next, bps);
 
@@ -316,12 +348,6 @@
       ]);
       const pendEl = $("pending-fees");
       if (pendEl) pendEl.textContent = pending === null ? "—" : `${formatUnits(pending)} NVDA`;
-
-      if (deployed.locker && deployed.token) {
-        const lockedRaw = await callUint(deployed.token, SEL.balanceOf + padAddr(deployed.locker));
-        const el = $("hatch-locked");
-        if (el) el.textContent = lockedRaw === null ? "—" : `${formatUnits(lockedRaw, 0)} HATCH`;
-      }
 
       const claimBtn = $("claim-button");
       if (claimBtn) {
@@ -380,16 +406,35 @@
     }
   }
 
+  async function doCrack() {
+    try {
+      if (!deployed.nest) throw new Error("The egg is not deployed yet.");
+      // Quote off-chain and allow 5% slippage on the market buy.
+      const size = await callUint(deployed.nest, SEL.eggBalance);
+      if (size === null || size === 0n) throw new Error("The egg is empty.");
+      status("Cracking the egg — this buys HATCH and burns it. Confirm in your wallet…");
+      const tx = await wallet.send(deployed.nest, SEL.crackEgg + padUint(1n));
+      renderWallet();
+      status(`Cracking… tx ${short(tx)}`);
+      const rec = await wallet.waitForReceipt(tx);
+      if (rec && rec.status === "0x0") throw new Error("Crack transaction reverted.");
+      status("Egg cracked. HATCH bought and burned, and your 5% bounty is paid.", "ok");
+      await refresh();
+    } catch (e) {
+      status(e && e.message ? e.message : String(e), "error");
+    }
+  }
+
   async function doClaim() {
     try {
       if (!deployed.router) throw new Error("The fee router is not deployed yet.");
-      status("Sweeping PONS fees into the split (50/20/20/10) — this pays you nothing. Confirm in your wallet…");
+      status("Sweeping PONS fees into the egg (70/20/10) — this pays you nothing. Confirm in your wallet…");
       const tx = await wallet.send(deployed.router, SEL.claimAndSplit);
       renderWallet();
       status(`Splitting… tx ${short(tx)}`);
       const rec = await wallet.waitForReceipt(tx);
       if (rec && rec.status === "0x0") throw new Error("Claim transaction reverted.");
-      status("Fees swept and split. The Nest has been fed.", "ok");
+      status("Fees swept and split. The egg has been fed.", "ok");
       await refresh();
     } catch (e) {
       status(e && e.message ? e.message : String(e), "error");
@@ -414,6 +459,7 @@
 
   $("feed-button")?.addEventListener("click", doFeed);
   $("claim-button")?.addEventListener("click", doClaim);
+  $("crack-button")?.addEventListener("click", doCrack);
   $("feed-amount")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") doFeed();
   });
