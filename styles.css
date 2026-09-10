@@ -47,7 +47,7 @@
    muddy green arc. Uses the real hook mark now, bled off the right edge. */
 .hero-hook{position:absolute;right:-6vw;top:50%;transform:translateY(-50%);
   width:min(38vw,520px);height:auto;opacity:.16;pointer-events:none;z-index:0}
-.hero>*:not(.hero-hook){position:relative;z-index:1}
+.hero>*:not(.hero-hook):not(.hero-hook-3d){position:relative;z-index:1}
 @media(max-width:850px){.hero-hook{display:none}}
 
 /* --- wordmark: HOOKED LABS --------------------------------------------
@@ -56,3 +56,15 @@
 .brand:hover em{color:var(--acid)}
 
 .progress-top b{color:var(--acid);letter-spacing:.06em}
+
+/* --- 3D hero hook ------------------------------------------------------
+   The SVG mark ships first and stays until three.js has actually drawn, so a
+   blocked CDN or missing WebGL just leaves the flat mark in place. */
+.hero-hook-3d{position:absolute;right:-5vw;top:50%;transform:translateY(-50%);
+  width:min(36vw,540px);height:min(44vw,660px);opacity:0;transition:opacity .9s ease;
+  pointer-events:none;z-index:0}
+.hero-hook-3d.ready{opacity:.88}
+.hero-hook-3d canvas{display:block;width:100%!important;height:100%!important}
+@media(max-width:850px){.hero-hook-3d{display:none}}
+
+@media(max-width:1200px){.hero-hook-3d{right:-10vw;width:min(34vw,380px)}}
