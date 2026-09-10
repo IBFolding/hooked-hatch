@@ -69,6 +69,8 @@ def wordmark(bg, textcol, hookcol, transparent=False):
   {hook_centred(96, 88, 1.05, hookcol)}
   <text x="164" y="126" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="900"
         font-size="112" letter-spacing="-7" fill="{textcol}">HOOKED</text>
+  <text x="560" y="126" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="800"
+        font-size="66" letter-spacing="-2" fill="{GRAY}">LABS</text>
 </svg>'''
 
 write("hooked-wordmark-dark.svg", wordmark(CARBON, BONE, ACID))
@@ -186,7 +188,7 @@ write("social/x-banner.svg", f'''
   {hook_centred(178, 250, 2.1, ACID)}
   <text x="290" y="250" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="900" font-size="132" letter-spacing="-9" fill="{BONE}">GET HOOKED.</text>
   <text x="296" y="308" font-family="monospace" font-weight="700" font-size="26" letter-spacing="7" fill="{ACID}">TOKENS WITH A MECHANISM INSIDE.</text>
-  <text x="296" y="356" font-family="monospace" font-weight="700" font-size="19" letter-spacing="4" fill="{GRAY}">ROBINHOOD CHAIN / EXPERIMENT 001: HATCH</text>
+  <text x="296" y="356" font-family="monospace" font-weight="700" font-size="19" letter-spacing="4" fill="{GRAY}">HOOKED LABS / ROBINHOOD CHAIN / EXPERIMENT 001: HATCH</text>
   <rect x="0" y="484" width="1500" height="16" fill="{ACID}"/>
 </svg>''')
 
@@ -215,6 +217,6 @@ def og(title_lines, sub, kicker, egg=False):
   <rect x="0" y="614" width="1200" height="16" fill="{ACID}"/>
 </svg>'''
 
-write("social/og-hooked.svg", og(["GET", "HOOKED."], "TOKENS WITH A MECHANISM INSIDE.", "HOOKED / ROBINHOOD CHAIN"))
-write("social/og-hatch.svg", og(["FEED THE", "EGG."], "NOBODY KNOWS WHAT'S INSIDE.", "HOOKED 001 / HATCH / NVDA", egg=True))
+write("social/og-hooked.svg", og(["GET", "HOOKED."], "TOKENS WITH A MECHANISM INSIDE.", "HOOKED LABS / ROBINHOOD CHAIN"))
+write("social/og-hatch.svg", og(["FEED THE", "EGG."], "NOBODY KNOWS WHAT'S INSIDE.", "HOOKED LABS 001 / HATCH / NVDA", egg=True))
 print()

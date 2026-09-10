@@ -1,6 +1,6 @@
-# HOOKED — HATCH #001
+# HOOKED LABS — HATCH #001
 
-HOOKED is an experimental launch gallery for mechanism-driven meme coins on Robinhood Chain.
+HOOKED LABS is an experimental launch gallery for mechanism-driven meme coins on Robinhood Chain.
 
 Launch #001 is **HATCH**: a PONS token paired with tokenized NVIDIA (NVDA). PONS creator fees are routed to a dedicated `HatchFeeRouter`, which claims NVDA from the PONS V2 fee escrow and splits it:
 

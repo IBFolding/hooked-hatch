@@ -49,3 +49,8 @@
   width:min(38vw,520px);height:auto;opacity:.16;pointer-events:none;z-index:0}
 .hero>*:not(.hero-hook){position:relative;z-index:1}
 @media(max-width:850px){.hero-hook{display:none}}
+
+/* --- wordmark: HOOKED LABS --------------------------------------------
+   LABS sits back so HOOKED still carries the mark at small sizes. */
+.brand em{font-style:normal;font-weight:800;color:var(--muted);letter-spacing:-.02em;margin-left:.34em;font-size:.62em;vertical-align:.12em}
+.brand:hover em{color:var(--acid)}
