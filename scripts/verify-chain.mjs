@@ -10,7 +10,7 @@
  *   RPC_URL=https://... node scripts/verify-chain.mjs
  */
 
-const RPC = process.env.RPC_URL || "https://rpc.mainnet.chain.robinhood.com";
+const RPC = process.env.RPC_URL || process.env.ROBINHOOD_RPC_URL || "https://rpc.mainnet.chain.robinhood.com";
 
 const ADDR = {
   ponsFactory: "0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e",
@@ -156,4 +156,8 @@ async function main() {
   console.log("All external protocol preconditions hold. Re-run immediately before signing.\n");
 }
 
-main().catch((e) => { console.error("\nverification error:", e.message, "\n"); process.exit(1); });
+main().catch((e) => {
+  console.error(`\nverification error: ${e.message}`);
+  console.error("If this is a network error the chain may just be unreachable; retry before concluding anything.\n");
+  process.exit(1);
+});

@@ -3,10 +3,8 @@ pragma solidity ^0.8.26;
 
 import {Script} from "forge-std/Script.sol";
 import {console2} from "forge-std/console2.sol";
-import {HatchNestVault} from "../src/HatchNestVault.sol";
-import {HatchFeeRouterV2} from "../src/HatchFeeRouterV2.sol";
-import {HatchBuybackLocker} from "../src/HatchBuybackLocker.sol";
-import {HookedLaunchRegistry} from "../src/HookedLaunchRegistry.sol";
+import {HatchEgg} from "../src/HatchEgg.sol";
+import {HatchFeeRouter} from "../src/HatchFeeRouter.sol";
 
 interface IPonsFactoryView {
     function approvedPairTokens(address token) external view returns (bool);
@@ -16,43 +14,32 @@ interface IERC20Meta {
     function decimals() external view returns (uint8);
 }
 
-/// @notice Deploys the HATCH mechanism contracts in the required order.
-/// @dev Deployment order is Nest -> BuybackLocker -> Router, because each takes the
-///      previous addresses as immutable constructor arguments.
+/// @notice Deploys the HATCH mechanism: the egg, then the fee router that fills it.
 ///
-///      The locker's initialiser is the deployer. It is a ONE-SHOT role: calling
-///      initialise() after the PONS launch zeroes it permanently. The launch script
-///      does that in the same run, so the window is a single transaction wide.
+/// @dev Order is Egg -> Router, because the router takes the egg as an immutable
+///      constructor argument.
+///
+///      The egg's initialiser is the deployer. It is a ONE-SHOT role: LaunchHatch
+///      calls initialise() in the same run as the launch, which zeroes it forever.
+///
+///      Router governance is BURNED by default. bindLaunch/migratePonsRecipient can
+///      never be called. The mechanism does not need them: claimAndSplit and
+///      crackEgg are both permissionless.
 ///
 /// Usage:
 ///   forge script script/DeployHatch.s.sol:DeployHatch \
 ///     --rpc-url $ROBINHOOD_RPC_URL --broadcast --verify
 ///
-/// Required environment:
-///   PRIVATE_KEY         deployer key
-///   HOOKED_TREASURY     HOOKED community treasury (receives 20%)
-///   TEAM_TREASURY       team/ops address (receives 10%)
-/// Optional:
-///   ROUTER_GOVERNANCE   defaults to the burn address - see below
-///   DEPLOY_REGISTRY     "true" to also deploy HookedLaunchRegistry (default false)
-///   REGISTRY_GOVERNANCE required only when DEPLOY_REGISTRY is true
-///   NVDA, PONS_ESCROW, PONS_FACTORY  override the canonical mainnet addresses
-///
-/// GOVERNANCE IS BURNED BY DEFAULT.
-/// HOOKED ships HATCH with no privileged actor. The consequence is permanent:
-/// bindLaunch() and migratePonsRecipient() can never be called, so PONS creator
-/// fees can never be redirected away from this router. The mechanism itself is
-/// unaffected - claimAndSplit() is permissionless and the split is immutable.
-/// Note the router rejects address(0), so a burn uses 0x...dEaD.
+/// Required env: PRIVATE_KEY, HOOKED_TREASURY, TEAM_TREASURY
+/// Optional env: ROUTER_GOVERNANCE (default burn), CRACK_THRESHOLD_ETHER (default 50),
+///               NVDA, PONS_ESCROW, PONS_FACTORY, POOL_MANAGER
 contract DeployHatch is Script {
     address constant NVDA_DEFAULT = 0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC;
     address constant ESCROW_DEFAULT = 0xd3AFEB2a57f70eF218Aa82451c51B2fb0416Ac9e;
     address constant FACTORY_DEFAULT = 0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e;
     address constant POOL_MANAGER_DEFAULT = 0x8366a39CC670B4001A1121B8F6A443A643e40951;
-    uint256 constant EXPECTED_CHAIN_ID = 4663;
-
-    /// @dev The router constructor rejects address(0), so a burn must be a real address.
     address constant BURN = 0x000000000000000000000000000000000000dEaD;
+    uint256 constant EXPECTED_CHAIN_ID = 4663;
 
     function run() external {
         address nvda = vm.envOr("NVDA", NVDA_DEFAULT);
@@ -63,62 +50,48 @@ contract DeployHatch is Script {
         address governance = vm.envOr("ROUTER_GOVERNANCE", BURN);
         address hookedTreasury = vm.envAddress("HOOKED_TREASURY");
         address teamTreasury = vm.envAddress("TEAM_TREASURY");
-        bool deployRegistry = vm.envOr("DEPLOY_REGISTRY", false);
+        uint256 crack = vm.envOr("CRACK_THRESHOLD_ETHER", uint256(50)) * 1 ether;
 
         _preflight(nvda, escrow, factory, governance, hookedTreasury, teamTreasury);
+        require(hookedTreasury != teamTreasury, "treasury and team must differ - the 20% must be auditable");
 
-        uint256[7] memory thresholds =
-            [uint256(1 ether), 5 ether, 10 ether, 25 ether, 50 ether, 100 ether, 250 ether];
+        // Stage display ramps to the crack threshold; stage 7 means crackable.
+        uint256[7] memory t = [
+            crack / 50, crack / 10, crack / 5, (crack * 2) / 5, (crack * 3) / 5, (crack * 4) / 5, crack
+        ];
 
-        vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
+        uint256 pk = vm.envUint("PRIVATE_KEY");
+        vm.startBroadcast(pk);
 
-        HatchNestVault nest = new HatchNestVault(nvda, thresholds);
-
-        // The deployer is the locker's one-shot initialiser; LaunchHatch burns it.
-        HatchBuybackLocker locker =
-            new HatchBuybackLocker(nvda, address(nest), poolManager, vm.addr(vm.envUint("PRIVATE_KEY")));
-
-        HatchFeeRouterV2 router = new HatchFeeRouterV2(
-            nvda, escrow, factory, address(nest), address(locker), hookedTreasury, teamTreasury, governance
-        );
-
-        // The registry is optional and NOT required to launch. Its governance must
-        // stay live: a burned registry can never register a launch, which would make
-        // it permanently useless.
-        address registry;
-        if (deployRegistry) {
-            registry = address(new HookedLaunchRegistry(vm.envAddress("REGISTRY_GOVERNANCE")));
-        }
+        HatchEgg egg = new HatchEgg(nvda, poolManager, vm.addr(pk), t);
+        HatchFeeRouter router =
+            new HatchFeeRouter(nvda, escrow, factory, address(egg), hookedTreasury, teamTreasury, governance);
 
         vm.stopBroadcast();
 
         console2.log("");
         console2.log("=== HATCH DEPLOYMENT ===");
         console2.log("chain id        ", block.chainid);
-        console2.log("HatchNestVault  ", address(nest));
-        console2.log("BuybackLocker   ", address(locker));
+        console2.log("HatchEgg        ", address(egg));
         console2.log("HatchFeeRouter  ", address(router));
-        if (deployRegistry) console2.log("LaunchRegistry  ", registry);
         console2.log("");
-        console2.log("nest     50%  ->", address(nest));
-        console2.log("buyback  20%  ->", address(locker));
+        console2.log("egg      70%  ->", address(egg));
         console2.log("hooked   20%  ->", hookedTreasury);
         console2.log("team     10%  ->", teamTreasury);
+        console2.log("crack threshold (NVDA wei)", crack);
+        console2.log("cracker bounty  5% of the egg");
         console2.log("");
         if (governance == BURN) {
             console2.log("GOVERNANCE IS BURNED:", governance);
-            console2.log("bindLaunch and migratePonsRecipient are permanently unreachable.");
-            console2.log("claimAndSplit stays permissionless - the mechanism is unaffected.");
+            console2.log("No admin exists. claimAndSplit and crackEgg are permissionless.");
         } else {
             console2.log("governance      ", governance);
         }
         console2.log("");
         console2.log("Next: launch HATCH on PONS with creatorFeeRecipient =", address(router));
-        console2.log("      then LaunchHatch calls locker.initialise(token, curve)");
-        console2.log("Then: record all addresses + tx hashes in docs/DEPLOYMENTS.md");
+        console2.log("      LaunchHatch then calls egg.initialise(token, curve)");
     }
 
-    /// @dev Fails fast before spending gas if the environment is not what we expect.
     function _preflight(
         address nvda,
         address escrow,
@@ -130,8 +103,6 @@ contract DeployHatch is Script {
         require(governance != address(0), "governance cannot be address(0) - use 0x..dEaD to burn");
         require(hookedTreasury != address(0), "HOOKED_TREASURY unset");
         require(teamTreasury != address(0), "TEAM_TREASURY unset");
-        require(hookedTreasury != teamTreasury, "treasury and team must differ - the 20% must be auditable");
-
         require(nvda.code.length > 0, "no code at NVDA");
         require(escrow.code.length > 0, "no code at PONS escrow");
         require(factory.code.length > 0, "no code at PONS factory");

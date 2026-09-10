@@ -61,7 +61,7 @@ interface IERC20 {
     function approve(address, uint256) external returns (bool);
 }
 
-interface IHatchBuybackLocker {
+interface IHatchEgg {
     function initialise(address hatchToken, address curve) external;
     function initialiser() external view returns (address);
     function hatchToken() external view returns (address);
@@ -76,7 +76,7 @@ interface IHatchBuybackLocker {
 ///     --rpc-url $ROBINHOOD_RPC_URL --broadcast
 ///
 /// Required env: PRIVATE_KEY, FEE_ROUTER
-/// Optional env: BUYBACK_LOCKER - if set, initialise() is called in this same run,
+/// Optional env: HATCH_EGG - if set, initialise() is called in this same run,
 ///               which permanently burns the locker's initialiser role
 /// Optional env: LAUNCH_CONFIG_ID (default 0), SALT_SEED, LOGO_URI, WEBSITE, TWITTER,
 ///               DESCRIPTION, DEV_BUY_NVDA_WEI, DEV_BUY_SLIPPAGE_BPS
@@ -167,18 +167,18 @@ contract LaunchHatch is Script {
 
         // Bind the buyback locker to the launch it will buy from. This is the only
         // moment it can be done, and it burns the initialiser role permanently.
-        address locker = vm.envOr("BUYBACK_LOCKER", address(0));
-        if (locker != address(0)) {
-            IHatchBuybackLocker(locker).initialise(token, curve);
+        address egg = vm.envOr("HATCH_EGG", address(0));
+        if (egg != address(0)) {
+            IHatchEgg(egg).initialise(token, curve);
         }
 
         uint256 bought;
         if (devBuy > 0) bought = _openingBuy(curve, devBuy, slippageBps, launcher);
         vm.stopBroadcast();
 
-        if (locker != address(0)) {
-            require(IHatchBuybackLocker(locker).hatchToken() == token, "locker not bound to this launch");
-            require(IHatchBuybackLocker(locker).initialiser() == address(0), "locker initialiser not burned");
+        if (egg != address(0)) {
+            require(IHatchEgg(egg).hatchToken() == token, "egg not bound to this launch");
+            require(IHatchEgg(egg).initialiser() == address(0), "egg initialiser not burned");
         }
 
         console2.log("");
@@ -192,10 +192,10 @@ contract LaunchHatch is Script {
         console2.log("Next: put the token address in web/config.js as hatchToken, redeploy the site,");
         console2.log("and record token + curve + tx hash in docs/DEPLOYMENTS.md.");
         console2.log("NOTE: governance is burned, so bindLaunch() is intentionally NOT called.");
-        if (locker != address(0)) {
-            console2.log("buyback locker bound and its initialiser is now burned:", locker);
-            console2.log("After the curve graduates, call configurePool(PoolKey) once to enable");
-            console2.log("v4 buybacks. Until then the slice is forwarded to the Nest, never stranded.");
+        if (egg != address(0)) {
+            console2.log("egg bound and its initialiser is now burned:", egg);
+            console2.log("After the curve graduates, call egg.configurePool(PoolKey) once so the");
+            console2.log("egg can buy on the v4 pool. Before graduation it buys on the curve.");
         }
     }
 

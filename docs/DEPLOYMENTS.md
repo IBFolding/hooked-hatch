@@ -35,7 +35,7 @@ for every caller. `claimAndSplit` simulates cleanly from an unrelated address.
 |---|---|---|---|
 | HatchNestVault (v1, SUPERSEDED) | `0xebb9Bd45d87FeC54c4ee34445b288816603A43e5` | `0xd0f5fad0e553dbe40775cfe6188c2216589e29d941b882a95a78ec436b414697` | n/a |
 | HatchFeeRouter (v1, SUPERSEDED) | `0x8377292Fa54d0C53C590DAeCaCD719365E425e82` | `0x8f46af2977e3812d1b23f5bf19f741b3677d6c9413363b565e12fb82656339cf` | n/a |
-| HatchNestVault | `TBD` | `TBD` | ☐ |
+| HatchNestVault | `0xCBBe2A5c3A22BE749D5DDF24e9534f98951983e2` | `TBD` | ☐ |
 | HatchBuybackLocker | `TBD` | `TBD` | ☐ |
 | HatchFeeRouterV2 | `TBD` | `TBD` | ☐ |
 

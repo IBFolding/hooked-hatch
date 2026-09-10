@@ -100,8 +100,9 @@ cat <<EOF
 $PLAN
 
   deployer            $DEPLOYER
-  nest        50%  →  (deployed in step 2, NVDA locked forever)
-  buyback     20%  →  (deployed in step 2, buys HATCH and locks it forever)
+  egg         70%  →  (deployed in step 2)
+                      fills with NVDA; at the crack threshold anyone may
+                      crack it: it buys HATCH and BURNS it, cracker keeps 5%
   hooked      20%  →  $HOOKED_TREASURY
   team        10%  →  $TEAM_TREASURY
   governance       →  ${RED}BURNED${RST} (0x…dEaD) — irreversible, no admin ever
@@ -117,10 +118,10 @@ read -rp "Type LAUNCH to continue: " c
 cd contracts
 if [ "$DO_DEPLOY" = "0" ]; then
   ROUTER="${FEE_ROUTER:?--launch-only needs FEE_ROUTER in .env}"
-  LOCKER="${BUYBACK_LOCKER:?--launch-only needs BUYBACK_LOCKER in .env}"
+  LOCKER="${HATCH_EGG:-$NEST_ADDRESS}"
   NEST="${NEST_ADDRESS:-}"
   ok "using existing router $ROUTER"
-  ok "using existing locker $LOCKER"
+
 else
 step "2/5  Deploying Nest + Router"
 # Explorer verification needs a real verifier; skip it on a fork, and never let
@@ -131,7 +132,7 @@ if [ "$IS_FORK" = "1" ]; then
   warn "local RPC detected — fork rehearsal mode (no verify, no publish)"
 fi
 forge script script/DeployHatch.s.sol:DeployHatch --rpc-url "$RPC" --broadcast $VERIFY_FLAG 2>&1 \
-  | tee /tmp/hatch-deploy.log | grep -E "HatchNestVault|BuybackLocker|HatchFeeRouter|BURNED" || true
+  | tee /tmp/hatch-deploy.log | grep -E "HatchEgg|HatchFeeRouter|crack|bounty|BURNED" || true
 grep -q "ONCHAIN EXECUTION COMPLETE" /tmp/hatch-deploy.log \
   || die "deployment failed — see /tmp/hatch-deploy.log"
 # Source verification is cosmetic and often unavailable; never fail the launch on it.
@@ -143,18 +144,14 @@ fi
 RUN=broadcast/DeployHatch.s.sol/4663/run-latest.json
 NEST=$(python3 -c "
 import json;d=json.load(open('$RUN'))
-print(next(t['contractAddress'] for t in d['transactions'] if t.get('contractName')=='HatchNestVault'))")
+print(next(t['contractAddress'] for t in d['transactions'] if t.get('contractName')=='HatchEgg'))")
 ROUTER=$(python3 -c "
 import json;d=json.load(open('$RUN'))
-print(next(t['contractAddress'] for t in d['transactions'] if t.get('contractName')=='HatchFeeRouterV2'))")
-LOCKER=$(python3 -c "
-import json;d=json.load(open('$RUN'))
-print(next(t['contractAddress'] for t in d['transactions'] if t.get('contractName')=='HatchBuybackLocker'))")
+print(next(t['contractAddress'] for t in d['transactions'] if t.get('contractName')=='HatchFeeRouter'))")
 NEST=$(cast to-check-sum-address "$NEST")
 ROUTER=$(cast to-check-sum-address "$ROUTER")
-LOCKER=$(cast to-check-sum-address "$LOCKER")
-ok "HatchNestVault  $NEST"
-ok "BuybackLocker   $LOCKER"
+LOCKER="$NEST"   # the egg IS the buyback venue now
+ok "HatchEgg        $NEST"
 ok "HatchFeeRouter  $ROUTER"
 fi
 
@@ -176,14 +173,13 @@ PY2
 
 ${GRN}${BOLD}CONTRACTS ARE LIVE. THE TOKEN IS NOT.${RST}
 
-  Nest (50%)      $NEST
-  Buyback (20%)   $LOCKER
+  Egg (70%)       $NEST
   Fee router      $ROUTER
 
 Nothing exists on PONS yet. When you are ready to create HATCH:
 
   ${BOLD}echo "FEE_ROUTER=$ROUTER" >> .env${RST}
-  ${BOLD}echo "BUYBACK_LOCKER=$LOCKER" >> .env${RST}
+  ${BOLD}echo "HATCH_EGG=$NEST" >> .env${RST}
   ${BOLD}./scripts/launch.sh --launch-only${RST}
 
 EOF
@@ -201,7 +197,7 @@ if [ -n "${DEV_BUY_NVDA:-}" ]; then
     || die "launcher holds too little NVDA for a $DEV_BUY_NVDA NVDA opening buy"
 fi
 export DEV_BUY_NVDA_WEI
-FEE_ROUTER="$ROUTER" BUYBACK_LOCKER="$LOCKER" forge script script/LaunchHatch.s.sol:LaunchHatch \
+FEE_ROUTER="$ROUTER" HATCH_EGG="$NEST" forge script script/LaunchHatch.s.sol:LaunchHatch \
   --rpc-url "$RPC" --broadcast 2>&1 | tee /tmp/hatch-launch.log | grep -E "HATCH token|bonding curve|launchFee|Error" || true
 grep -q "ONCHAIN EXECUTION COMPLETE" /tmp/hatch-launch.log || die "launch failed — see /tmp/hatch-launch.log"
 
@@ -266,16 +262,17 @@ ${GRN}${BOLD}$([ "$IS_FORK" = "1" ] && echo "FORK REHEARSAL COMPLETE — nothing
 
   HATCH token     $TOKEN
   bonding curve   $CURVE
-  Nest (50%)      $NEST
-  Buyback (20%)   $LOCKER
+  Egg (70%)       $NEST
   Fee router      $ROUTER
   Explorer        https://robinhoodchain.blockscout.com/address/$TOKEN
   Site            https://hookedlabs.vercel.app/hatch
 
 ${BOLD}Next:${RST}
   · Do NOT buy in the first seconds — PONS has anti-snipe behaviour on new launches.
-  · Once trading produces fees, anyone can press CLAIM & FEED on the site,
-    or run: cast send $ROUTER 'claimAndSplit()' --rpc-url $RPC
+  · Once trading produces fees, anyone can sweep them into the egg:
+      cast send $ROUTER 'claimAndSplit()' --rpc-url $RPC
+  · When the egg reaches its threshold, anyone can crack it and keep 5%:
+      cast send $NEST 'crackEgg(uint256)' <minHatchOut> --rpc-url $RPC
   · Commit the updated config: git add -A && git commit -m "launch: HATCH live"
 
 EOF

@@ -10,11 +10,11 @@
   <link rel="apple-touch-icon" href="./assets/hooked-icon-dark.svg" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="HATCH — Feed the egg." />
-  <meta property="og:description" content="Every HATCH trade routes creator-fee NVDA into the Nest and buys HATCH off the market to lock forever. Nobody knows what's inside." />
+  <meta property="og:description" content="Every HATCH trade feeds the egg NVDA. Fill it, crack it, and it burns HATCH forever. Nobody knows what's inside." />
   <meta property="og:image" content="./assets/social/og-hatch.svg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="HATCH — Feed the egg." />
-  <meta name="twitter:description" content="Every HATCH trade routes creator-fee NVDA into the Nest and buys HATCH off the market to lock forever. Nobody knows what's inside." />
+  <meta name="twitter:description" content="Every HATCH trade feeds the egg NVDA. Fill it, crack it, and it burns HATCH forever. Nobody knows what's inside." />
   <meta name="twitter:image" content="./assets/social/og-hatch.svg" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
@@ -30,7 +30,7 @@
       <div class="hatch-copy">
         <div class="eyebrow"><span class="live-dot"></span> EXPERIMENT 001 / HATCH / NVDA</div>
         <h1>FEED<br>THE <span>EGG.</span></h1>
-        <p>Nobody knows what's inside. Every HATCH trade routes creator-fee NVDA into the Nest and buys HATCH off the market to lock forever.</p>
+        <p>Nobody knows what's inside. Every HATCH trade feeds the egg NVDA. Fill it, crack it, and it burns HATCH forever.</p>
         <div class="actions">
           <a id="trade-link" class="cta" href="#" target="_blank" rel="noopener">TRADE ON PONS ↗</a>
           <button id="connect-button" class="ghost" type="button">CONNECT WALLET</button>
@@ -55,14 +55,14 @@
           <div class="egg" id="egg"><div class="egg-eye"></div><div class="crack c1"></div><div class="crack c2"></div></div>
         </div>
         <div class="monitor">
-          <span>NEST MASS</span><strong id="nest-balance">0.0000 NVDA</strong>
+          <span>EGG MASS</span><strong id="nest-balance">0.0000 NVDA</strong>
           <span>STAGE</span><strong id="stage-label">DORMANT</strong>
         </div>
       </div>
     </section>
 
     <section class="nest-panel shell">
-      <div class="section-head"><span>LIVE NEST</span><span id="network-state">CHAIN 4663</span></div>
+      <div class="section-head"><span>LIVE EGG</span><span id="network-state">CHAIN 4663</span></div>
       <div class="progress-card">
         <div class="progress-top"><span id="stage-number">STAGE 0 / 7</span><span id="next-threshold">NEXT: 1 NVDA</span></div>
         <div class="progress"><div id="progress-fill"></div></div>
@@ -72,10 +72,21 @@
             <strong id="pending-fees">—</strong>
           </div>
           <div class="claim-info">
-            <span>HATCH BOUGHT &amp; LOCKED</span>
+            <span>HATCH BURNED SO FAR</span>
             <strong id="hatch-locked">—</strong>
           </div>
-          <button id="claim-button" class="ghost" type="button" disabled>SWEEP FEES INTO THE NEST</button>
+          <div class="claim-info">
+            <span>CRACK BOUNTY RIGHT NOW</span>
+            <strong id="crack-bounty">—</strong>
+          </div>
+          <button id="claim-button" class="ghost" type="button" disabled>SWEEP FEES INTO THE EGG</button>
+        </div>
+        <div class="crack-row">
+          <div>
+            <span class="crack-label">THE EGG CRACKS AT <b id="crack-threshold">—</b></span>
+            <p class="crack-copy">When it fills, anyone can crack it. Every NVDA inside buys HATCH on the open market and burns it. Whoever cracks it keeps <strong>5%</strong>. Then the egg starts filling again.</p>
+          </div>
+          <button id="crack-button" class="cta" type="button" disabled>CRACK THE EGG</button>
         </div>
         <p class="claim-note">Permissionless: anyone may pull HATCH's creator fees out of PONS escrow and trigger the 50/20/20/10 split. <strong>This does not pay you.</strong> The caller receives nothing and pays the gas. Holding HATCH does not entitle you to any share of the fees, the Nest, or the buyback — there is no claim function, and no admin who could add one.</p>
         <div class="milestones">
@@ -91,16 +102,16 @@
         <div class="flow-arrow">→</div>
         <article><b>02</b><h3>CLAIM</h3><p>The HATCH fee router claims creator-fee NVDA from PONS escrow.</p></article>
         <div class="flow-arrow">→</div>
-        <article><b>03</b><h3>SPLIT</h3><p><strong>50%</strong> Nest · <strong>20%</strong> buyback &amp; lock · <strong>20%</strong> HOOKED · <strong>10%</strong> team.</p></article>
+        <article><b>03</b><h3>SPLIT</h3><p><strong>70%</strong> egg · <strong>20%</strong> HOOKED · <strong>10%</strong> team.</p></article>
         <div class="flow-arrow">→</div>
-        <article><b>04</b><h3>EVOLVE</h3><p>The actual NVDA balance controls the egg's stage. The buyback slice buys HATCH and locks it forever.</p></article>
+        <article><b>04</b><h3>CRACK</h3><p>At the threshold anyone can crack the egg. It spends every NVDA inside buying HATCH and <strong>burns it</strong>. The cracker keeps 5%. Then it refills.</p></article>
       </div>
     </section>
 
     <section class="facts shell">
       <div><span>PAIR</span><strong>HATCH / NVDA</strong></div>
       <div><span>EXTRA CREATOR TAX</span><strong>0%</strong></div>
-      <div><span>NEST PRINCIPAL</span><strong>LOCKED</strong></div>
+      <div><span>CRACKER BOUNTY</span><strong>5%</strong></div>
       <div><span>LAUNCH</span><strong>PONS V2</strong></div>
     </section>
 
@@ -109,9 +120,9 @@
       <div class="contract-grid">
         <div><span>HATCH TOKEN</span><code id="hatch-token">NOT LAUNCHED</code></div>
         <div><span>NVDA (QUOTE ASSET)</span><code id="nvda-address">0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC</code></div>
-        <div><span>NEST</span><code id="nest-address">DEPLOY FIRST</code></div>
+        <div><span>THE EGG</span><code id="nest-address">DEPLOY FIRST</code></div>
         <div><span>FEE ROUTER</span><code id="router-address">DEPLOY FIRST</code></div>
-        <div><span>BUYBACK LOCK</span><code id="locker-address">DEPLOY FIRST</code></div>
+        
       </div>
     </section>
   </main>
@@ -121,10 +132,10 @@
       <p><strong>Holding HATCH entitles you to nothing.</strong> There is no dividend, no revenue share, no staking reward and no redemption. No function exists that pays a holder, and governance is burned, so none can ever be added.</p>
       <p><strong>HATCH is an experiment, not an investment product.</strong> It is a meme coin with a mechanical fee-routing rule. It carries no claim on any company, no revenue share, and no promise of value. You can lose everything you put in.</p>
       <p>The quote asset is a <strong>tokenized equity exposure product</strong> issued on Robinhood Chain. It is not a share of NVIDIA Corporation, confers no shareholder rights, no voting rights and no dividend entitlement. HOOKED is not affiliated with, endorsed by, or sponsored by NVIDIA Corporation or Robinhood Markets, Inc. Product names are used factually to identify the quote asset.</p>
-      <p>NVDA routed into the Nest is <strong>permanently locked</strong>. The contracts have no withdrawal, rescue or upgrade path for Nest principal. Nothing here is financial advice.</p>
+      <p>NVDA in the egg can only ever leave one way: a permissionless crack that buys HATCH and burns it, paying the caller 5%. There is no withdrawal, rescue or upgrade path, and no admin. Nothing here is financial advice.</p>
     </section>
 
-  <footer class="shell"><span>HOOKED 001 // HATCH</span><span>THE EGG DOES NOT PROMISE RETURNS. IT JUST GETS FED.</span></footer>
+  <footer class="shell"><span>HOOKED 001 // HATCH</span><span>THE EGG DOES NOT PROMISE RETURNS. IT JUST GETS FED, AND CRACKED.</span></footer>
   <script src="./config.js"></script>
   <script src="./app.js"></script>
 </body>
