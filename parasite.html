@@ -30,7 +30,7 @@
         <h1>WHOEVER<br>TRADES NEXT<br><span>CATCHES IT.</span></h1>
         <p class="p-lede">A living thing lives in the liquidity pool. Touch the pool and it moves into your wallet. Then it starts eating.</p>
         <div class="actions">
-          <a class="cta" href="#rules">HOW IT WORKS <span>↓</span></a>
+          <a class="cta" href="#console-root">WATCH IT RUN <span>↓</span></a>
           <a class="ghost" href="./hatch">SEE 001 / HATCH ↗</a>
         </div>
       </div>
@@ -63,8 +63,8 @@
         </li>
         <li>
           <b>04</b>
-          <h3>PASS IT ON</h3>
-          <p>Trade again and it leaves you &mdash; for whoever touches the pool next. Your cure is a stranger's problem. If nobody comes, it bounces back to you.</p>
+          <h3>YOU CAN'T TRADE IT OFF</h3>
+          <p>The pool stays contaminated. Trading again doesn't clean you &mdash; it just means the next person catches it too. There is no passing the buck. Only an antidote cures you.</p>
         </li>
         <li class="p-danger">
           <b>05</b>
@@ -74,12 +74,12 @@
         <li>
           <b>06</b>
           <h3>BREW THE ANTIDOTE</h3>
-          <p>The real cure is an antidote NFT, brewed from a recipe: <strong>PARASITE + NVDA + one rotating reagent</strong>. The reagent changes every 12 hours. Uncapped, so you can always make one &mdash; and you can hold one before you need it.</p>
+          <p>The only cure is an antidote NFT, brewed from <strong>PARASITE + NVDA + one rotating reagent</strong>. The reagent changes every 12 hours. Uncapped, so you can always make one &mdash; and you can hold one before you need it.</p>
         </li>
         <li class="p-danger">
           <b>07</b>
-          <h3>IT GROWS AS IT EATS</h3>
-          <p>The more it consumes, the faster it drains and the more often it goes airborne. There is no stalemate. Left alone it accelerates until the round ends.</p>
+          <h3>IT LEARNS</h3>
+          <p>The more it eats the faster it drains, the more hosts it takes at once &mdash; and <strong>every cure makes the next one harder</strong>. It adapts to the antidote. Cure early and it's cheap. Wait, and it may cost more than you're holding.</p>
         </li>
         <li>
           <b>08</b>
@@ -89,9 +89,73 @@
       </ol>
     </section>
 
+
+    <!-- ------------------------------------------------------------ console -->
+    <section class="p-console shell" id="console-root">
+      <div class="section-head"><span>LIVE CONSOLE</span><span>SIMULATED · 1 HOUR PER SECOND</span></div>
+      <p class="p-sub">This is the mechanic actually running, at <strong>one simulated hour per second</strong> so a full round plays out in about half a minute. Numbers come from a model of the contracts, not from a chain. The parameters below were tuned by running thousands of rounds headlessly.</p>
+
+      <div class="c-grid">
+
+        <div class="c-panel c-organism-panel">
+          <h4>THE ORGANISM</h4>
+          <div class="c-big" id="c-strength">1.00×</div>
+          <div class="c-bar"><i id="c-strength-bar" style="width:16%"></i></div>
+          <dl>
+            <dt>DRAIN</dt><dd id="c-drain">—</dd>
+            <dt>AGGRESSION</dt><dd id="c-aggression">—</dd>
+            <dt>CONSUMED</dt><dd id="c-consumed">—</dd>
+            <dt>ROUND</dt><dd id="c-round">1</dd>
+            <dt>ELAPSED</dt><dd id="c-elapsed">—</dd>
+          </dl>
+        </div>
+
+        <div class="c-panel c-pot-panel">
+          <h4>THE POT</h4>
+          <div class="c-big c-acid" id="c-pot">0.00</div>
+          <div class="c-unit">PARASITE eaten</div>
+          <div class="c-eq" id="c-equities"></div>
+          <div class="c-unit c-dim">real equities paid for antidotes</div>
+        </div>
+
+        <div class="c-panel c-surv-panel">
+          <h4>SURVIVORS</h4>
+          <div class="c-split">
+            <div><b id="c-clean">—</b><span>CLEAN</span></div>
+            <div><b class="c-rot" id="c-infected">—</b><span>INFECTED</span></div>
+          </div>
+          <div class="c-bar"><i id="c-survivor-bar" style="width:100%"></i></div>
+          <dl>
+            <dt>FLOOR (10%)</dt><dd id="c-floor">—</dd>
+            <dt>WALLETS TO GO</dt><dd id="c-togo">—</dd>
+            <dt>REAGENT</dt><dd id="c-reagent">—</dd>
+            <dt>ROTATES IN</dt><dd id="c-rotate">—</dd>
+          </dl>
+        </div>
+
+        <div class="c-panel c-wide">
+          <h4>INFECTED — BLEEDING NOW</h4>
+          <div class="c-row c-head"><span>WALLET</span><span>INFECTED</span><span>BLED</span><span>REMAINING</span></div>
+          <div id="c-infected-list"></div>
+        </div>
+
+        <div class="c-panel c-wide">
+          <h4>AT RISK — IT HUNTS THESE NEXT</h4>
+          <div class="c-row c-head"><span>WALLET</span><span>SIZE</span><span>IDLE</span><span>RISK</span></div>
+          <div id="c-risk-list"></div>
+        </div>
+
+        <div class="c-panel c-feed-panel">
+          <h4>ACTIVITY</h4>
+          <div id="c-feed"></div>
+        </div>
+
+      </div>
+    </section>
+
     <!-- ------------------------------------------------------------ at risk -->
     <section class="p-risk shell">
-      <div class="section-head"><span>THE AT-RISK BOARD</span><span>LIVE WHEN THE ROUND OPENS</span></div>
+      <div class="section-head"><span>THE AT-RISK BOARD</span><span>HOW IT READS IN PRODUCTION</span></div>
       <p class="p-sub">Everyone can see their own odds. That is the point &mdash; you should be able to watch it coming for you.</p>
       <div class="p-board">
         <div class="p-board-row p-board-head"><span>WALLET</span><span>SIZE</span><span>HELD</span><span>IDLE</span><span>RISK</span></div>
@@ -129,6 +193,7 @@
 
   <footer class="shell"><span>HOOKED LABS 002 // PARASITE</span><span>IT DOESN'T HATE YOU. YOU'RE JUST WARM.</span></footer>
   <script src="./parasite.js" defer></script>
+  <script src="./parasite-sim.js" defer></script>
   <script>
     // The reagent rotation is derived from the clock, exactly as the contract
     // would compute it: epoch = floor(now / 12h). No server, no oracle.
