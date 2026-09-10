@@ -9,7 +9,7 @@
   <rect width="1200" height="630" fill="url(#g2)"/>
   <ellipse cx="962" cy="318" rx="150" ry="190" fill="#B9FF2C" opacity="0.05" filter="url(#soft2)"/>
   <g transform="translate(666 39) scale(1.15)"><path d="M256 104 C298 104 332 156 332 216 C332 300 298 376 256 376 C214 376 180 300 180 216 C180 156 214 104 256 104 Z" fill="url(#shell2)"/><g fill="none" stroke="#2b322c" stroke-width="5" stroke-linecap="round" opacity="0.6"><path d="M268 168 l14 26 l-9 9 l18 22 M282 194 l24 -6" /><path d="M214 258 l-16 20 l10 14" /></g></g>
-  <text x="80" y="150" font-family="monospace" font-weight="700" font-size="21" letter-spacing="6" fill="#8F978D">HOOKED 001 / HATCH / NVDA</text>
+  <text x="80" y="150" font-family="monospace" font-weight="700" font-size="21" letter-spacing="6" fill="#8F978D">HOOKED LABS 001 / HATCH / NVDA</text>
   <text x="76" y="300" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="900" font-size="124" letter-spacing="-8" fill="#E9EADF">FEED THE</text>
   <text x="76" y="410" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="900" font-size="124" letter-spacing="-8" fill="#B9FF2C">EGG.</text>
   <text x="80" y="470" font-family="monospace" font-weight="700" font-size="24" letter-spacing="4" fill="#8F978D">NOBODY KNOWS WHAT'S INSIDE.</text>

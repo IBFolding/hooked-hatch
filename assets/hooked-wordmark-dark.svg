@@ -7,4 +7,6 @@
   <path d="M17 16 L28 41 L6 41 Z" fill="#B9FF2C" stroke="none"/></g>
   <text x="164" y="126" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="900"
         font-size="112" letter-spacing="-7" fill="#E9EADF">HOOKED</text>
+  <text x="560" y="126" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="800"
+        font-size="66" letter-spacing="-2" fill="#8F978D">LABS</text>
 </svg>
