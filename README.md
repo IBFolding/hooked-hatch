@@ -67,6 +67,18 @@ launch config, and that every selector our contracts call exists in the deployed
 bytecode. Exits non-zero on failure. Prints live pair economics without asserting
 them — those are mutable protocol state and must never be hard-coded.
 
+## Where the site is hosted
+
+| Host | URL | Public? |
+|---|---|---|
+| GitHub Pages | https://ibfolding.github.io/hooked-hatch/ | **yes** |
+| Vercel | https://hookedlabs.vercel.app | no — behind Vercel Authentication |
+
+Pages serves the `gh-pages` branch (the contents of `web/` at its root). Redeploy
+with `./scripts/deploy-web.sh`. The Vercel deployment is identical but stays
+gated until Vercel Authentication is disabled in the project's Deployment
+Protection settings.
+
 ## Preview the site
 
 ```bash
