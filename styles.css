@@ -54,3 +54,5 @@
    LABS sits back so HOOKED still carries the mark at small sizes. */
 .brand em{font-style:normal;font-weight:800;color:var(--muted);letter-spacing:-.02em;margin-left:.34em;font-size:.62em;vertical-align:.12em}
 .brand:hover em{color:var(--acid)}
+
+.progress-top b{color:var(--acid);letter-spacing:.06em}

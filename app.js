@@ -26,6 +26,8 @@
     currentBounty: "0x0a4255e4",
     totalBurned: "0xd89135cd",
     crackThreshold: "0xd547a5d9",
+    round: "0x146ca531",
+    nextRoundThreshold: "0x6a9ac5ef",
     crackEgg: "0xa50618fd"
   };
 
@@ -250,12 +252,15 @@
     $("nest-balance").textContent = `${formatUnits(balance)} NVDA`;
     $("stage-label").textContent = LABELS[Math.min(stage, LABELS.length - 1)];
     $("stage-number").textContent = `STAGE ${stage} / 7`;
+    const sr = $("stage-round"); if (sr && stage >= 7) sr.textContent = "";
 
-    const next = nextOverride != null && nextOverride > 0n ? nextOverride : (stage >= thresholds.length ? 0n : high);
+    const remaining = nextOverride;
     $("next-threshold").textContent =
-      stage >= thresholds.length || next === 0n
-        ? "FINAL THRESHOLD CLEARED"
-        : `NEXT: ${formatUnits(next, 0)} NVDA`;
+      remaining == null
+        ? ""
+        : remaining === 0n
+          ? "READY TO CRACK"
+          : `${formatUnits(remaining)} NVDA TO GO`;
 
     $("progress-fill").style.width = `${pct}%`;
     $("egg").className = `egg stage-${stage}`;
@@ -319,12 +324,20 @@
     $("network-state").textContent = `LIVE / CHAIN ${cfg.chainId}`;
 
     // Crack state: the whole mechanic hangs off these.
-    const [burned, bounty, threshold, canCrack] = await Promise.all([
+    const [burned, bounty, threshold, canCrack, rnd, nextRnd] = await Promise.all([
       callUint(deployed.nest, SEL.totalBurned),
       callUint(deployed.nest, SEL.currentBounty),
       callUint(deployed.nest, SEL.crackThreshold),
-      callUint(deployed.nest, SEL.crackable)
+      callUint(deployed.nest, SEL.crackable),
+      callUint(deployed.nest, SEL.round),
+      callUint(deployed.nest, SEL.nextRoundThreshold)
     ]);
+    const roundEl = $("egg-round");
+    if (roundEl) roundEl.textContent = rnd === null ? "—" : `ROUND ${rnd}`;
+    const nextRndEl = $("next-round");
+    if (nextRndEl) {
+      nextRndEl.textContent = nextRnd === null ? "—" : `${formatUnits(nextRnd, 0)} NVDA`;
+    }
     const burnedEl = $("hatch-locked");
     if (burnedEl) burnedEl.textContent = burned === null ? "—" : `${formatUnits(burned, 0)} HATCH`;
     const bountyEl = $("crack-bounty");

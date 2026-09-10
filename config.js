@@ -26,8 +26,7 @@ window.HOOKED_CONFIG = {
   ponsFactory: "0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e",
   ponsEscrow: "0xd3AFEB2a57f70eF218Aa82451c51B2fb0416Ac9e",
 
-  // Egg stage ramp toward the crack threshold. Must match HatchEgg's constructor
-  // thresholds, which DeployHatch derives from CRACK_THRESHOLD_ETHER (default 50).
-  // Stage 7 means the egg is crackable.
+  // Stage ramp is derived on-chain as a percentage of the CURRENT round's
+  // threshold, so these are only a fallback before the egg is deployed.
   stageThresholds: [1, 5, 10, 20, 30, 40, 50]
 };
