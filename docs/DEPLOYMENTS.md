@@ -84,14 +84,16 @@ unusable. Deploy it separately with live governance if launches 002+ need it.
 | Item | Value |
 |---|---|
 | HATCH token | `0x0e819C089b8cA4277522df11727B8CB92Ef37771` |
-| Bonding curve | `TBD` |
+| Bonding curve | `0xB7FB0d8FcC1c1ac48b8E3643866BC58417eAD1AE` |
 | Launch tx | `TBD` |
 | CREATE2 salt | `TBD` |
-| Launch config id | `0` (launchConfigCount == 1) |
-| `creatorFeeRecipient` | `TBD` (must equal HatchFeeRouter) |
+| Launch config id | `0` |
+| Pair token | `0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC` NVDA — verified onchain |
+| creatorTaxBps | `0` — verified onchain |
+| `creatorFeeRecipient` | `0x37D6FB5ced95BB9372a43Ce5BbeA45FEAD20CfA1` — verified onchain = HatchFeeRouter |
 | `creatorTaxBps` | `0` |
 | `buybackEnabled` | `false` |
-| PONS trade URL | `TBD` |
+| PONS trade URL | https://www.ponsfamily.com/launchpad/0x90f186e498eb49F1dc0de89Ce8975d877A6D71d0 |
 | Launch fee paid | `TBD` |
 | Pair economics at launch | `TBD` (record what `pairTokenEconomics` returned) |
 | Launch selector used | `0xf35abbcf` launchToken(TokenParams,uint256,address) |
