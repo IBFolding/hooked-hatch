@@ -38,7 +38,7 @@
       ]
     }
   ],
-  "rewrites": [
+  "redirects": [
     {
       "source": "/",
       "has": [
@@ -47,7 +47,8 @@
           "value": "hookedlabs-hatch.vercel.app"
         }
       ],
-      "destination": "/hatch.html"
+      "destination": "/hatch",
+      "permanent": false
     }
   ]
 }
