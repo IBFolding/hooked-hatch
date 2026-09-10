@@ -15,8 +15,8 @@ window.HOOKED_CONFIG = {
   ponsUrl: "https://www.ponsfamily.com/",
 
   // --- Deployed HATCH addresses (fill in after deployment) ---
-  hatchToken: "",
-  hatchPonsUrl: "",
+  hatchToken: "0x90f186e498eb49F1dc0de89Ce8975d877A6D71d0",
+  hatchPonsUrl: "https://www.ponsfamily.com/launchpad/0x90f186e498eb49F1dc0de89Ce8975d877A6D71d0",
   // The egg. Named `nest` for backwards compatibility with the page markup.
   nest: "0xcDD7B542D9a768F15159889006e29Da11CDc9484",
   feeRouter: "0x37D6FB5ced95BB9372a43Ce5BbeA45FEAD20CfA1",
